@@ -1,0 +1,29 @@
+---
+title: "Start here"
+---
+
+Every lesson answers one decision you actually face, runs on data small enough to download now, and ends by showing you the wrong answer it can produce without ever throwing an error.
+
+Nothing in spatial omics crashes when it goes wrong. Bad segmentation produces a
+beautiful UMAP. A flipped y-axis produces a plausible tissue map. A differential test run
+across spatially autocorrelated neighbours returns confident p-values for what is only
+tissue architecture. Two sections cut at different thicknesses produce a convincing new
+cell state. Every lesson here therefore ends by breaking itself on purpose and showing you
+the diagnostic that catches it.
+
+## Where the boundary sits
+
+The site covers the experimental decisions that determine what your data can support —
+allocation and blocking, what each bench step leaves behind in the matrix, what a targeted
+panel can and cannot see. It does not cover bench execution: buffers, incubation times and
+instrument settings belong to the vendor protocol and change between chemistry versions
+faster than a tutorial can honestly track.
+
+Also out of scope: platform selection advice, and benchmarking methods against each other.
+Both age badly, and both are better served by the literature than by a tutorial.
+
+## Versions
+
+SpatialData with spatialdata-io and spatialdata-plot, Squidpy, scanpy; Zarr and Parquet storage following OME-NGFF. Versions pinned and shown on every page — confirm current releases before writing.
+
+See @sec-environment for the pinned versions this build used.

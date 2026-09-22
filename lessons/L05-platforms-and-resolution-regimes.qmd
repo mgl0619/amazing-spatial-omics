@@ -1,0 +1,285 @@
+---
+title: "Platforms and resolution regimes"
+subtitle: "Lesson 5 — Before you trust anything"
+runtime: "2 min"
+peak-memory: "under 2 GB"
+data-tier: "Committed toy"
+builds: "Name the regime"
+status: written
+citations-verified: partial
+---
+
+## The decision this serves
+
+A reviewer asks which cells express your marker. You have Visium data. Decide whether that
+sentence is available to you before you write the rebuttal.
+
+::: {.callout-important}
+**Scale.** Runs in about 2 min, peak memory under 2 GB. Nothing here stops being safe at
+size — this lesson is about what the numbers mean, not how many of them there are.
+:::
+
+## Concept
+
+Every spatial platform answers the same question — where in the tissue is this RNA — and
+they split into two families that answer it by different physics. The family determines what
+a row of your matrix is, and that determines which sentences you are allowed to write.
+
+### Family one: capture-based
+
+Tissue is placed on a slide carrying spatially barcoded oligonucleotides, permeabilised, and
+mRNA diffuses down onto the barcoded surface where reverse transcription attaches a
+positional barcode. The library is then sequenced conventionally. Position comes from the
+barcode, not from an image.
+
+So **resolution is a property of the array, not of the biology**. A Visium v1 capture area
+is 6.5 × 6.5 mm holding 4,992 spots, each 55 µm in diameter, arranged in a honeycomb with
+100 µm centre-to-centre spacing [@visium_spatialone_2024]; an 11 × 11 mm capture area holds
+roughly 14,000.
+
+Two consequences follow directly from that geometry, and both matter more than people
+expect.
+
+**You are not measuring most of the tissue.** Spot area times spot count over capture area
+gives roughly 30% coverage — about **70% of the section is never sampled at all**
+[@spot_deconvolution_cells_per_spot]. The gaps between spots contribute nothing, and your
+eye interpolates across them without being asked.
+
+**A spot is several cells, and how many depends on your tissue.** Simulation against real
+tissue geometry gives median cells per 55 µm spot of **19 in mouse kidney, 6 in mouse
+cortex, 5 in hippocampus, and 6 in human breast cancer**
+[@spot_deconvolution_cells_per_spot]. The commonly quoted "1 to 10 cells" is optimistic for
+dense tissue. Look up your own tissue rather than repeating a range.
+
+Visium HD changes the geometry rather than the chemistry: a continuous lawn of 2 × 2 µm
+barcoded squares with no gaps, conventionally binned to 8 × 8 µm for analysis
+[@tenx_visium_hd_technote]. Two microns is smaller than a cell, which sounds like it solves
+the problem. It does not, and the reason matters: **a bin is not a cell either.** A grid
+square straddles boundaries arbitrarily and a cell spans several bins. You have traded "one
+row is several cells" for "one row is part of a cell, and which part is decided by where the
+grid happened to fall." Getting from bins to cells requires segmentation — lesson 7.
+
+What you gain from this family is the whole transcriptome. You did not choose genes in
+advance, so you can ask questions you had not thought of.
+
+### Family two: imaging-based
+
+No sequencing. Probes hybridise to transcripts in intact tissue and are read out optically
+over multiple rounds, each transcript species carrying a codeword — a pattern of which
+rounds it lights up in. Xenium builds signal by rolling circle amplification; MERFISH uses
+combinatorial barcoding with error-robust codes; CosMx uses cyclic hybridisation. Details
+differ, logic is shared.
+
+Here resolution is diffraction-limited rather than array-limited. You get a point cloud of
+molecules with coordinates, a morphology image, and **no cells at all** until someone draws
+boundaries.
+
+The cost is that you only measure the panel, and the constraint is physical rather than
+commercial: transcripts are point sources in a diffraction-limited image, so as density
+rises they overlap and become unresolvable. This is why panels are curated rather than
+maximal and why very abundant transcripts are often excluded.
+
+**Sensitivity runs opposite to intuition.** Benchmarking found Xenium's detection efficiency
+to be **1.2 to 1.5 times that of Chromium v2 scRNA-seq**, depending on metric and region,
+with commercial platforms converging on similar detection efficiency
+[@xenium_quality_2025]. An imaging dataset is simultaneously *more* sensitive than your
+scRNA-seq for the genes it measures and *blind* to everything else.
+
+Platforms differ in noise as much as in sensitivity, and the differences are not small.
+Systematic benchmarking across a tumour tissue microarray found Xenium with the lowest false
+discovery rate in 15 of 22 tissue–cancer combinations, while CosMx detected more genes on a
+substantially larger panel [@ist_benchmark_2025]. That work also found large shifts between
+2023 and 2024 chemistry and algorithm versions — so any platform comparison you read is a
+snapshot, including this one.
+
+### The three regimes, and what each licenses
+
+The whole lesson in one table. Before writing any sentence about your data, find your row.
+
+| | **Spot** | **Bin** | **Cell** |
+|---|---|---|---|
+| Example | Visium v1/v2 | Visium HD 8 µm | Xenium, MERFISH, CosMx |
+| One row is | a 55 µm disc | a grid square | a segmented region |
+| Cells per row | 5–19, tissue-dependent | a fraction of one | one, if segmentation is right |
+| Genes | whole transcriptome | whole transcriptome | panel only |
+| Tissue sampled | ~30% | continuous | continuous |
+| "This cell expresses X" | **no** | **no** | conditional on lesson 7 |
+| "X and Y are co-expressed" | **no** — may be different cells | **no** | conditional on lesson 7 |
+| "This region expresses X" | yes | yes | yes |
+
+The rows marked no are where most published errors live. A spot with high *CD8A* and high
+*PDCD1* tells you both are present in that 55 µm disc holding perhaps six cells. It does not
+tell you one T cell expresses both, and no downstream analysis creates that information —
+deconvolution returns proportions, not cells, which is lesson 8.
+
+### Units, and the comparison that is never valid
+
+Counts per spot, per bin and per cell are three quantities and none converts into another.
+Spot counts scale with tissue on the spot; bin counts with bin area; cell counts with cell
+volume in the section plane, and therefore with section thickness — lesson 2.
+
+The trap: total counts per cell in a Xenium run are far lower than in scRNA-seq, and this is
+routinely misread as poor quality. It is not. You are counting a few hundred panel genes
+rather than twenty thousand, and per-panel-gene sensitivity is typically *higher* than
+droplet scRNA-seq [@xenium_quality_2025]. Normalising a targeted dataset by total counts and
+comparing to an untargeted one compares two different denominators.
+
+**The assumption that breaks first.** That a row of the matrix corresponds to one cell.
+Everything downstream treats rows as units of biology, and in two of the three regimes they
+are not.
+
+## Runnable notebook
+
+The same tissue read in three regimes, with row semantics made explicit.
+
+Data tier: **Committed toy**
+
+::: {.callout-warning}
+**Not yet executed.** No output shown and nothing cached.
+:::
+
+```{python}
+#| label: regimes
+import spatialdata as sd
+import numpy as np
+
+regimes = []
+for label, path, table in [
+    ("Visium (spot)",   "toy_visium.zarr",    "square_002um"),
+    ("Visium HD (bin)", "toy_visium_hd.zarr", "square_008um"),
+    ("Xenium (cell)",   "toy_xenium.zarr",    "table"),
+]:
+    sdata = sd.read_zarr(f"data/cache/{path}")
+    t = sdata.tables[table]
+    area_mm2 = np.prod(np.ptp(t.obsm["spatial"], axis=0)) / 1e6
+    regimes.append((label, t, area_mm2))
+    print(f"{label:<18} rows={t.n_obs:>7,}  genes={t.n_vars:>6,}  "
+          f"rows/mm²={t.n_obs / area_mm2:>8.0f}  median counts={np.median(t.X.sum(1)):>6.0f}")
+```
+
+```{python}
+#| label: assert-regimes
+# Rows per unit area must differ by orders of magnitude across regimes.
+# If they do not, two of these objects are the same regime and the lesson is lying.
+
+density = {label: t.n_obs / area for label, t, area in regimes}
+
+assert (density["Visium (spot)"] < density["Visium HD (bin)"]
+        < density["Xenium (cell)"]), f"regimes not ordered by density: {density}"
+
+# Visium geometry is fixed and known: ~100 spots per mm² on a 100 µm grid.
+assert 80 < density["Visium (spot)"] < 120, (
+    f"spot density {density['Visium (spot)']:.0f}/mm² is inconsistent with a "
+    "100 µm centre-to-centre array; check the coordinate units (lesson 6)"
+)
+
+# Targeted versus untargeted, asserted rather than assumed.
+assert regimes[2][1].n_vars < 1000 < regimes[0][1].n_vars
+```
+
+That second assert is worth noticing: because the Visium array geometry is fixed and
+published, spot density per mm² is a quantity you can check against a specification. If it
+comes back at 10,000 rather than ~100, your coordinates are in pixels rather than microns —
+which is lesson 6, caught here for free.
+
+## Rosetta panel
+
+Reading each regime in R, and where the object model stops distinguishing them. A `Seurat`
+object holds spots, bins and cells in the same slot, so the regime is carried in your head
+rather than in the data structure.
+
+```r
+library(Seurat)
+
+visium <- Load10X_Spatial("data/cache/toy_visium/")
+xenium <- LoadXenium("data/cache/toy_xenium/")
+
+ncol(visium)   # spots
+ncol(xenium)   # cells
+
+# Nothing in the object stops you writing this, which is the problem:
+# FetchData(visium, c("CD8A", "PDCD1"))  ->  co-expression that may be six cells
+```
+
+## Failure mode
+
+**What it produces.** The sentence "this cell type expresses X" written from spot data. The
+analysis runs, the figure looks like every other figure, and the claim was never measurable.
+Its commoner disguise: a spot-level correlation between two genes reported as
+co-expression, when the genes sit in different cells sharing a 55 µm disc.
+
+**The diagnostic that catches it.** Count nuclei per spot from the paired H&E or DAPI image
+and report the median. Published estimates run from 5 to 19 depending on tissue
+[@spot_deconvolution_cells_per_spot], so the number is never 1. Do this once per dataset,
+put it in your methods, and an entire class of reviewer objection is foreclosed.
+
+## Self-check
+
+### Question 1
+
+What is one row of your table?
+
+::: {.callout-note collapse="true"}
+## Answer
+
+For Visium, a 55 µm disc containing a tissue-dependent mixture — median 19 cells in mouse
+kidney, 5 to 6 in brain and breast [@spot_deconvolution_cells_per_spot]. For Visium HD, a
+grid square whose boundary has no relationship to any cell boundary. For an imaging
+platform, whatever the segmentation algorithm decided was a cell — a claim, not a
+measurement.
+
+Only the third can ever be a cell, and only if lesson 7 went well.
+:::
+
+### Question 2
+
+Two genes correlate strongly across your Visium spots. What are the possible explanations?
+
+::: {.callout-note collapse="true"}
+## Answer
+
+At least four, and the data cannot separate them. They may be co-expressed in the same
+cells. They may sit in two different cell types that reliably co-occur in the same
+neighbourhood. One may be expressed in a cell type whose abundance varies across the
+section, dragging both signals with it. Or both may track a technical gradient in capture
+efficiency — lesson 2.
+
+Spot-level correlation is a statement about tissue composition, not transcriptional
+regulation. Getting to the latter needs a cell-resolution platform or an orthogonal
+experiment.
+:::
+
+### Question 3
+
+Your Xenium cells have a median of 300 counts and a colleague calls it low quality next to
+their scRNA-seq at 5,000. Are they right?
+
+::: {.callout-note collapse="true"}
+## Answer
+
+No, because the denominators differ. Those 300 counts come from a panel of a few hundred
+genes; the 5,000 from twenty thousand. Per gene, Xenium's detection efficiency has been
+measured at 1.2–1.5× Chromium v2 [@xenium_quality_2025].
+
+The right comparison is per-gene detection for genes present in both, ideally on matched
+tissue. The wrong one — total counts — makes every targeted platform look broken forever.
+:::
+
+## Going further
+
+Deconvolution, which recovers cell-type proportions within a spot, is lesson 8.
+Segmentation, which decides what a cell is on imaging platforms, is lesson 7.
+
+Deliberately omitted: which platform to buy. It depends on tissue, question and budget, and
+the benchmarks themselves show large shifts between chemistry versions
+[@ist_benchmark_2025] — so any recommendation here would expire before you read it.
+
+### Sources
+
+::: {.callout-note}
+**Citation status: partial.** Each source was located and its DOI read from the publisher
+record on 2026-09-01. Array geometry is from a peer-reviewed paper cross-checked against the
+vendor technical note; both should be re-verified on each chemistry release, since these
+numbers move. Cells-per-spot medians come from one simulation study on four tissues and are
+not universal.
+:::

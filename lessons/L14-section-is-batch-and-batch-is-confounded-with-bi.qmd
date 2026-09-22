@@ -1,0 +1,101 @@
+---
+title: "Section is batch, and batch is confounded with biology"
+subtitle: "Lesson 14 — Asking spatial questions"
+runtime: "30 min"
+peak-memory: "16 GB"
+data-tier: "Fetched public"
+builds: "Choose a valid null, Spot a silent failure"
+status: draft
+citations-verified: false
+---
+
+## The decision this serves
+
+Two sections, one control and one treated, cut from different regions. You are about to integrate them. Decide what the correction is going to remove.
+
+::: {.callout-important}
+**Scale.** Runs in 30 min, peak memory 16 GB.
+Watch **integration strength, when sections differ in region** — that is what stops being safe on a full section.
+:::
+
+## Concept
+
+Why two sections are never only technical replicates: depth, region and handling all differ, and region is often the thing being studied.
+
+**The assumption that breaks first.** That batch and biology are separable in this design.
+
+## Runnable notebook
+
+Integrate two sections, then check what anatomy the correction erased
+
+Data tier: **Fetched public**
+
+```{python}
+#| label: setup
+# TODO
+```
+
+```{python}
+#| label: assert-truth
+# A known regional difference present before integration is measured after it, not assumed preserved
+# Sabotage the code this guards and confirm the assert FAILS before you commit.
+```
+
+## Rosetta panel
+
+The R integration route on the same pair, with the erased anatomy quantified the same way
+
+```r
+# TODO
+```
+
+## Failure mode
+
+**What it produces.** Integration succeeds by every standard metric and quietly removes the regional difference that was the finding.
+
+**The diagnostic that catches it.** Plot the regional marker spatially before and after; the gradient is gone while the mixing metric improved.
+
+## Self-check
+
+### Question 1
+
+What varies between your sections besides batch?
+
+::: {.callout-note collapse="true"}
+## Answer
+
+TODO
+:::
+
+### Question 2
+
+What did the correction change spatially?
+
+::: {.callout-note collapse="true"}
+## Answer
+
+TODO
+:::
+
+### Question 3
+
+Would your result survive no correction at all?
+
+::: {.callout-note collapse="true"}
+## Answer
+
+TODO
+:::
+
+## Going further
+
+Cross-donor design is out of scope.
+
+### Sources
+
+::: {.callout-warning}
+**Citations not yet verified.** Verify against PubMed — title, journal, year, volume,
+pages, DOI — then set `citations-verified: true`.
+:::
+
+TODO

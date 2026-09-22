@@ -1,0 +1,101 @@
+---
+title: "Cell typing inherits the reference's blind spots"
+subtitle: "Lesson 10 — From image to cells"
+runtime: "20 min"
+peak-memory: "8 GB"
+data-tier: "Fetched public"
+builds: "Spot a silent failure"
+status: draft
+citations-verified: false
+---
+
+## The decision this serves
+
+Your annotation is 94% confident everywhere, including in the region you believe is novel. Decide whether that confidence means anything.
+
+::: {.callout-important}
+**Scale.** Runs in 20 min, peak memory 8 GB.
+Watch **confidence cutoffs, for rare states** — that is what stops being safe on a full section.
+:::
+
+## Concept
+
+Label transfer and reference mapping; confidence scores and what they do not measure.
+
+**The assumption that breaks first.** That a confidence score reflects the probability the label is correct rather than the distance to the nearest reference state.
+
+## Runnable notebook
+
+Annotate one section against two references and map the disagreement spatially
+
+Data tier: **Fetched public**
+
+```{python}
+#| label: setup
+# TODO
+```
+
+```{python}
+#| label: assert-truth
+# A deliberately held-out cell type is not recovered, and the held-out cells still score as confident
+# Sabotage the code this guards and confirm the assert FAILS before you commit.
+```
+
+## Rosetta panel
+
+The R label-transfer route on the same section, with the two confidence scales compared rather than assumed equivalent
+
+```r
+# TODO
+```
+
+## Failure mode
+
+**What it produces.** An absent cell state is assigned to its nearest neighbour with high confidence, and the anomaly vanishes into a known label.
+
+**The diagnostic that catches it.** Hold a type out of the reference on purpose and watch where its cells land, still confidently.
+
+## Self-check
+
+### Question 1
+
+Where do the two references disagree?
+
+::: {.callout-note collapse="true"}
+## Answer
+
+TODO
+:::
+
+### Question 2
+
+Is that disagreement spatially structured?
+
+::: {.callout-note collapse="true"}
+## Answer
+
+TODO
+:::
+
+### Question 3
+
+What would an unseen state look like in your output?
+
+::: {.callout-note collapse="true"}
+## Answer
+
+TODO
+:::
+
+## Going further
+
+De novo clustering trade-offs are out of scope.
+
+### Sources
+
+::: {.callout-warning}
+**Citations not yet verified.** Verify against PubMed — title, journal, year, volume,
+pages, DOI — then set `citations-verified: true`.
+:::
+
+TODO

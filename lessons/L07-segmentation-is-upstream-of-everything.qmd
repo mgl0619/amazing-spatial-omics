@@ -1,0 +1,298 @@
+---
+title: "Segmentation is upstream of everything"
+subtitle: "Lesson 7 — From image to cells"
+runtime: "5 min"
+peak-memory: "2 GB"
+data-tier: "Simulated"
+builds: "Interrogate segmentation, Spot a silent failure"
+status: written
+citations-verified: partial
+---
+
+## The decision this serves
+
+You have found a transitional cell state nobody has reported. Before writing it up, decide
+whether it is two neighbouring cells merged by the segmenter.
+
+::: {.callout-important}
+**Scale.** Runs in about 5 min, peak memory 2 GB on the simulated tier. Watch the
+**nuclear expansion radius** — tolerable in sparse tissue, quietly wrong in dense tissue,
+and the failure grows with it.
+:::
+
+## Concept
+
+An imaging platform gives you transcripts with coordinates. It does not give you cells.
+Somewhere between the point cloud and your `AnnData` object, an algorithm drew boundaries
+and assigned every transcript to exactly one of them. Those errors are now inside your count
+matrix, indistinguishable from biology, and every downstream step inherits them.
+
+### How much does the choice actually matter?
+
+More than almost anyone budgets for. Benchmarked against simulated data with known ground
+truth, cell-type calling accuracy varied from **35% to 74%** across segmentation methods on
+the same underlying tissue — ComSeg 74%, pciSeq and Baysor 62%, Watershed 60%, SCS 35%
+[@comseg_2024].
+
+Read that in terms of your own project. The identity you assign to a cell can be wrong
+nearly two-thirds of the time or wrong a quarter of the time, and the difference is a
+preprocessing decision usually made with default parameters before you opened the data.
+
+### How boundaries get drawn
+
+**Nuclear segmentation plus expansion.** Segment nuclei from DAPI, dilate each outward by a
+fixed distance, call that the cell. Fast and robust, and wrong in a specific direction: real
+cells are not discs of uniform radius around their nuclei. In dense tissue the expansions of
+neighbours collide and contested transcripts are assigned by tie-break rather than by
+biology. The Proseg benchmark makes this measurable — there exist gene pairs whose
+co-expression rises sharply as nuclear boundaries are expanded, and that rise is the
+artifact becoming visible [@proseg_2025].
+
+**Membrane-guided segmentation.** Use boundary stains to find actual cell edges. Better
+where the stains work — and stain quality varies by tissue and by cell type, so the error
+rate is not uniform across the section and is correlated with cell identity. That is worse
+than uniform error, because it biases exactly the between-cell-type comparisons you will
+make later.
+
+**Transcript-density segmentation.** Cluster the transcripts themselves, on the reasoning
+that molecules from one cell form a coherent spatial cluster with a coherent expression
+profile. Baysor is the widely used example [@baysor_2022]; Proseg takes a probabilistic view
+of the same idea [@proseg_2025]. These handle irregular morphology better and depend less on
+stain quality. Notably, image-based methods leave large fractions of transcripts unassigned
+compared with transcript-driven ones [@proseg_2025] — those molecules are real measurements
+you paid for and then discarded.
+
+**Image-based deep learning.** Cellpose, StarDist and relatives segment from the morphology
+image. Generalise well; still inherit what the image shows, which in a thin section is a
+slice through a three-dimensional cell.
+
+### An honest disagreement, worth showing rather than resolving
+
+Baysor's own paper reports that it can nearly double the number of recovered cells relative
+to existing tools *while reducing contamination* [@baysor_2022]. The Proseg benchmark
+reports Baysor predicting substantially more cells than alternatives and reads this as
+**systematic over-segmentation** [@proseg_2025].
+
+Same observation, opposite interpretation. More cells is either recovery of cells watershed
+missed, or one cell split into two — and without ground truth the count alone cannot tell
+you which. This is not a flaw in either paper. It is what benchmarking without ground truth
+looks like, and it is why the simulated tier exists.
+
+### The two errors, and why only one is dangerous
+
+**Over-segmentation** splits one cell into two. Both fragments look like the same type with
+lower counts. You lose sensitivity and inflate cell number. Annoying, rarely fatal.
+
+**Under-segmentation** merges neighbours, and the danger is geometric. If cell A has profile
+$x_A$ and cell B has $x_B$, a merged object has approximately $\alpha x_A + (1-\alpha)x_B$ —
+a convex combination. In any linear embedding that lands **between** the two clusters. Merge
+enough A–B pairs and a population appears in the gap: intermediate markers, intermediate
+position in PCA space, higher total counts than either parent.
+
+That is what a genuine transitional state looks like. It survives clustering. It gets an
+annotation. Its marker set is the union of two real types', which reads as a plausible
+hybrid identity. And it is spatially localised at the interface between the two populations,
+which makes the biology sound *more* convincing, not less: *the transitional cells sit
+exactly where the compartments meet.*
+
+They sit there because that is where the segmenter merges cells.
+
+### Why your scRNA-seq instincts do not save you
+
+The signature is what a doublet looks like, and doublet removal is routine. The tools do not
+transfer.
+
+Scrublet and DoubletFinder simulate artificial doublets by summing **randomly** paired
+profiles, because droplet doublets form by random co-encapsulation. Segmentation chimeras
+form only between physically adjacent cells, so their composition is structured by tissue
+architecture and their rate scales with local density. A detector built on a random-pairing
+null is miscalibrated in both directions: it misses structured chimeras and flags genuine
+interface biology.
+
+### Measuring it without ground truth
+
+I would have told you this was impossible. It is not, and the workaround is clever: measure
+**purity** through co-expression of markers that should be mutually exclusive. CRISP does
+this without requiring ground truth annotations, and reports that segmentation algorithms
+face a fundamental tradeoff between maximising transcript capture and maintaining cell
+purity — with the severity of that tradeoff being **tissue-dependent**
+[@crisp_2026_preprint].
+
+That tissue dependence is the operational point. There is no globally correct segmenter, and
+a benchmark run on mouse brain does not transfer to your tumour. Run two on your own tissue
+and compare.
+
+**The assumption that breaks first.** That segmentation error is random noise that averages
+out. It is systematic, spatially structured, and it manufactures exactly the kind of result
+people find interesting.
+
+## Runnable notebook
+
+Simulated tissue with known boundaries; segment two ways and measure error against truth.
+
+Data tier: **Simulated** — the only tier where the right answer is known.
+
+::: {.callout-warning}
+**Not yet executed.** No output shown and nothing cached.
+:::
+
+```{python}
+#| label: chimera-rate
+import numpy as np
+from data.simulate import simulate_segmentation_truth
+
+sparse, truth_sparse = simulate_segmentation_truth(density="sparse", seed=0)
+dense,  truth_dense  = simulate_segmentation_truth(density="dense",  seed=0)
+
+def chimera_rate(assignment, truth, purity=0.9):
+    """Fraction of segmented objects drawing transcripts from more than one true cell."""
+    impure = 0
+    for cell_id in np.unique(assignment):
+        _, counts = np.unique(truth[assignment == cell_id], return_counts=True)
+        if counts.max() / counts.sum() < purity:
+            impure += 1
+    return impure / len(np.unique(assignment))
+
+for name, data, truth in [("sparse", sparse, truth_sparse), ("dense", dense, truth_dense)]:
+    for radius in (5, 10, 15):
+        seg = nuclear_expansion(data, radius_um=radius)
+        print(f"{name:<7} expansion={radius:>2} µm  chimera={chimera_rate(seg, truth):.3f}")
+```
+
+```{python}
+#| label: assert-chimeras
+# Assert the lesson's claim on ground truth rather than asserting it in prose.
+
+merged = profiles[is_chimera]
+parents = np.stack([profiles[truth == a].mean(0), profiles[truth == b].mean(0)])
+
+d_mid  = np.linalg.norm(merged - parents.mean(0), axis=1)
+d_near = np.min([np.linalg.norm(merged - p, axis=1) for p in parents], axis=0)
+assert np.median(d_mid) < np.median(d_near), (
+    "chimeras are not landing between their parents; the simulation is not "
+    "reproducing the phenomenon this lesson is about"
+)
+
+assert rate_dense > rate_sparse, f"{rate_dense=} should exceed {rate_sparse=}"
+assert rate_15um > rate_5um, "wider expansion must merge more neighbours"
+
+# Sabotage check: shuffle the truth labels and confirm the first assert FAILS.
+```
+
+```{python}
+#| label: purity-without-truth
+# The real-data proxy: co-expression of markers that should be mutually exclusive.
+# Works on your own tissue, where no ground truth exists.
+
+EXCLUSIVE = [("PTPRC", "EPCAM"), ("CD3E", "COL1A1")]   # immune vs epithelial, etc.
+for a, b in EXCLUSIVE:
+    both = ((adata[:, a].X > 0) & (adata[:, b].X > 0)).mean()
+    print(f"{a}+ {b}+ double-positive rate: {both:.4f}")
+```
+
+## Rosetta panel
+
+Reading masks into R and checking that the object corresponds to the boundaries you think it
+does. Segmentation itself runs in Python or a standalone tool; what R users need is the
+ability to look.
+
+```r
+library(Seurat)
+
+obj <- LoadXenium("data/cache/toy_xenium/")
+
+# Boundaries travel with the object. Plot them, do not assume them.
+ImageDimPlot(obj, fov = "fov", boundaries = "segmentation", border.color = "white")
+
+# The candidate transitional cluster, plotted on the masks:
+ImageDimPlot(obj, fov = "fov", boundaries = "segmentation",
+             cells = WhichCells(obj, idents = "transitional"))
+```
+
+## Failure mode
+
+**What it produces.** Under-segmentation creates chimeric profiles that cluster together and
+read as a publishable intermediate state — localised at the interface between two
+compartments, carrying markers of both, with higher counts than either.
+
+**The diagnostic that catches it.** Four checks, increasing in cost:
+
+1. **Plot the cluster on the masks over the image.** If its members sit on boundaries
+   between two other populations rather than holding territory of their own, that is the
+   answer.
+2. **Check for mutually exclusive markers.** A population co-expressing markers that cannot
+   biologically coexist is a purity failure, and this needs no ground truth
+   [@crisp_2026_preprint].
+3. **Check total counts.** A chimera carries roughly the sum of two cells. A "transitional"
+   population with systematically higher counts than both parents is a mixture.
+4. **Re-segment with a different method and re-cluster.** Real biology survives. Given that
+   cell-type calling accuracy ranges from 35% to 74% across methods [@comseg_2024], a
+   population appearing under only one segmenter is telling you about the segmenter.
+
+## Self-check
+
+### Question 1
+
+Have you looked at masks over the image?
+
+::: {.callout-note collapse="true"}
+## Answer
+
+If the analysis began from a provided cell-by-gene matrix, no — and the step where most
+errors enter was skipped before you started. Load the morphology image and the boundaries
+and look, once, before any cell-level claim.
+
+This is the cheapest diagnostic in the field and it is skipped constantly.
+:::
+
+### Question 2
+
+Your novel transitional population has higher total counts than either neighbouring type and
+expresses markers of both. Most likely explanation?
+
+::: {.callout-note collapse="true"}
+## Answer
+
+Merged cells. A chimera carries roughly the sum of two transcript complements and the union
+of two marker sets, which is exactly this signature.
+
+Genuine transitional states usually show *intermediate* levels of both programmes, counts
+comparable to their neighbours, and regulatory genes belonging to neither endpoint. "Both,
+at full strength, with more counts" is the arithmetic of addition, not of differentiation.
+:::
+
+### Question 3
+
+A colleague says Baysor recovers more cells, so it must be better. What do you say?
+
+::: {.callout-note collapse="true"}
+## Answer
+
+That more cells is ambiguous evidence. Baysor's own benchmark reports nearly doubling
+recovered cells while reducing contamination [@baysor_2022]; the Proseg benchmark reports
+the same behaviour as systematic over-segmentation [@proseg_2025].
+
+Without ground truth, cell count alone cannot distinguish "recovered cells watershed missed"
+from "one cell split in two." Settle it on your own tissue with a purity metric
+[@crisp_2026_preprint] or on simulation — not by counting.
+:::
+
+## Going further
+
+Cell typing, which inherits every boundary drawn here, is lesson 10. Neighbourhood analysis
+is worse affected than most expect — a merged cell is one object sitting at an interface,
+which distorts exactly the adjacency statistics of lesson 11.
+
+Deliberately omitted: a recommendation of which segmenter to use. The tradeoff between
+transcript capture and cell purity is tissue-dependent [@crisp_2026_preprint], so the honest
+answer is to run two on your tissue and compare.
+
+### Sources
+
+::: {.callout-note}
+**Citation status: partial.** Each source was located and its DOI read from the publisher
+record on 2026-09-01; author lists and page numbers remain incomplete in `references.bib`.
+CRISP is an unrefereed preprint and is flagged as such. The 35–74% accuracy range comes from
+one simulation study and is not a universal constant — it is evidence that the choice
+matters greatly, not a measurement of your tissue.
+:::

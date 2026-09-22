@@ -1,0 +1,101 @@
+---
+title: "What spatial data is, and what it is not"
+subtitle: "Lesson 4 — Before you trust anything"
+runtime: "under 1 min"
+peak-memory: "under 1 GB"
+data-tier: "Committed toy"
+builds: "Name the regime"
+status: draft
+citations-verified: false
+---
+
+## The decision this serves
+
+A collaborator hands you a Xenium run and asks whether two markers co-localise. Before you answer, decide whether that question is answerable from coordinates at all.
+
+::: {.callout-important}
+**Scale.** Runs in under 1 min, peak memory under 1 GB.
+Watch **nothing at this size** — that is what stops being safe on a full section.
+:::
+
+## Concept
+
+What each family of assay measures, in what units, at what resolution, and the difference between a location and a neighbourhood.
+
+**The assumption that breaks first.** That plotted point size has anything to do with the distance scale of the biology.
+
+## Runnable notebook
+
+Load a toy section, plot it, read the object structure
+
+Data tier: **Committed toy**
+
+```{python}
+#| label: setup
+# TODO
+```
+
+```{python}
+#| label: assert-truth
+# Point count matches the table row count; the extent in microns matches the reported section size
+# Sabotage the code this guards and confirm the assert FAILS before you commit.
+```
+
+## Rosetta panel
+
+SpatialData object structure alongside the equivalent Seurat spatial object, field by field
+
+```r
+# TODO
+```
+
+## Failure mode
+
+**What it produces.** Two types are called co-localised from a plot whose marker size is larger than the distances involved.
+
+**The diagnostic that catches it.** Replot with markers scaled to true microns and a scale bar; the apparent overlap disappears.
+
+## Self-check
+
+### Question 1
+
+Which of these three claims does your assay license?
+
+::: {.callout-note collapse="true"}
+## Answer
+
+TODO
+:::
+
+### Question 2
+
+At what distance do two points stop being neighbours?
+
+::: {.callout-note collapse="true"}
+## Answer
+
+TODO
+:::
+
+### Question 3
+
+What would you have to add to answer the question you actually have?
+
+::: {.callout-note collapse="true"}
+## Answer
+
+TODO
+:::
+
+## Going further
+
+Omits platform selection entirely.
+
+### Sources
+
+::: {.callout-warning}
+**Citations not yet verified.** Verify against PubMed — title, journal, year, volume,
+pages, DOI — then set `citations-verified: true`.
+:::
+
+TODO

@@ -1,0 +1,256 @@
+---
+title: "From block to matrix: the steps that constrain your analysis"
+subtitle: "Lesson 2 — How the data was made"
+runtime: "3 min"
+peak-memory: "under 1 GB"
+data-tier: "Committed toy"
+builds: "Name the regime, Spot a silent failure"
+status: written
+citations-verified: partial
+---
+
+## The decision this serves
+
+You inherited a dataset and a one-line methods section. Decide which of the patterns you are
+looking at are analysis artifacts, before you attribute any of them to biology.
+
+::: {.callout-important}
+**Scale.** Runs in about 3 min, peak memory under 1 GB. Watch **comparisons of counts
+across sections cut at different thicknesses** — that is the comparison that stops being
+valid without warning.
+:::
+
+## Concept
+
+A count matrix looks like a measurement. It is the output of a chain of physical decisions,
+most made by someone else, several unrecorded, all still present in the numbers.
+
+This is not a protocol. You will not learn incubation times here and you should not want to
+— those live in vendor documentation and change between chemistry versions. What you need is
+a model of which bench decision produces which analysis artifact.
+
+### Fixation, which is a fork in the road
+
+Formalin fixes tissue by crosslinking, and the same chemistry fragments RNA. That is
+inherent, not a handling failure — which is why RNA integrity number cannot be applied to
+FFPE material at all, since every RNA species in it is already fragmented. The metric used
+instead is **DV200**, the percentage of fragments longer than 200 nucleotides.
+
+The magnitudes are large. In a direct comparison of cardiac tissue, FFPE RNA had median RIN
+2.5 and DV200 48%, against RIN 8.1 and DV200 97% for fresh and frozen
+[@ffpe_ff_cardiac_2023]. Fragmentation is why FFPE workflows are probe-based: targeted
+probes tolerate short fragments, while capture of intact polyadenylated transcripts does
+not.
+
+Platform requirements follow from this and are specific. Visium requires RIN above 7.0 for
+fresh frozen and DV200 above 50% for FFPE; Xenium is FFPE with a DV200 threshold, and
+optimal section thickness is **5 µm for FFPE and 10 µm for fresh frozen**
+[@vai_spatial_specs].
+
+Block age matters more than most people expect. In one benchmarking study, FFPE skin blocks
+from 2018 averaged DV200 around 70% while blocks from 2008 averaged 31% — and lower initial
+RNA quality yielded decreased unique gene counts [@ffpe_st_benchmark_2023]. If your archive
+spans a decade and your conditions were collected in different years, RNA quality is
+confounded with condition.
+
+The operational consequence is blunt, and the cardiac comparison states it directly: refrain
+from comparing gene expression between tissues with different storage conditions
+[@ffpe_ff_cardiac_2023]. FFPE also distorts specific transcript classes rather than
+uniformly attenuating everything — a subset of mitochondrial transcripts appeared falsely
+overexpressed in FFPE relative to fresh and frozen [@ffpe_ff_cardiac_2023]. So the artifact
+is not a scaling factor you can normalise away.
+
+### Sectioning
+
+Thickness sets how much of each cell lies in the plane, which sets counts per cell. A 10 µm
+section and a 5 µm section from the same block yield systematically different totals — and
+the recommended thickness differs by fixation type [@vai_spatial_specs], so a study mixing
+FFPE and fresh-frozen material is also mixing thicknesses.
+
+If those two sections are your two conditions, you have measured the cryostat.
+
+### Permeabilisation and capture
+
+Efficiency is not uniform across a section. Dense tissue, fibrotic regions and areas near a
+fold behave differently, so capture efficiency varies spatially — and spatially varying
+efficiency is indistinguishable, in the matrix alone, from a spatially varying expression
+gradient.
+
+This is the artifact with the worst possible shape. It is spatially autocorrelated, which
+means it is exactly what the tests in lesson 12 are built to detect, and they will detect
+it.
+
+### Imaging, decoding, registration, segmentation
+
+Depth and cycle count differ between runs; these are the ordinary batch effects. Decoding
+assigns transcripts to positions and registration ties them to morphology — misregistration
+moves cells into the wrong anatomical compartment while leaving their expression untouched,
+which lesson 6 is entirely about. Segmentation, lesson 7, is the last decision before the
+object you were handed.
+
+### What the methods section will tell you
+
+In practice, two or three of these. Platform and chemistry version are almost always
+recorded. Section thickness sometimes. Time to fixation, permeabilisation conditions,
+segmentation parameters and software versions usually are not.
+
+So the first analysis on an inherited dataset is not clustering. It is reading the run
+metadata and writing down which decisions you know and which you are assuming. The ones you
+are assuming are your list of alternative explanations, and you will want it in writing
+before you become attached to a result.
+
+**The assumption that breaks first.** That the matrix you were handed is a measurement
+rather than the output of a dozen decisions nobody wrote down.
+
+## Runnable notebook
+
+Read the run metadata of a toy dataset and reconstruct what was done.
+
+Data tier: **Committed toy**
+
+::: {.callout-warning}
+**Not yet executed.** No output shown and nothing cached.
+:::
+
+```{python}
+#| label: reconstruct
+import spatialdata as sd
+
+sdata = sd.read_zarr("data/cache/toy_section.zarr")
+
+DECISIONS = [
+    "fixation", "section_thickness_um", "permeabilisation",
+    "chemistry_version", "registration_method", "segmentation_method",
+    "dv200", "rin", "block_year",
+]
+known   = {k: sdata.attrs.get(k) for k in DECISIONS}
+unknown = [k for k, v in known.items() if v is None]
+
+for k, v in known.items():
+    print(f"{k:<24} {v if v is not None else '— NOT RECORDED —'}")
+print("\nalternative explanations you cannot rule out:", unknown)
+```
+
+```{python}
+#| label: assert-metadata
+# Delete a metadata field on purpose and confirm this fails rather than
+# silently defaulting. Silent defaults are how these decisions disappear.
+
+assert known["section_thickness_um"] is not None, (
+    "thickness unrecorded: counts per cell are not comparable across sections"
+)
+
+# Thickness must match before any count-based comparison across sections.
+thicknesses = {s: m["section_thickness_um"] for s, m in per_section.items()}
+assert len(set(thicknesses.values())) == 1, (
+    f"sections cut at different thicknesses: {thicknesses}"
+)
+
+# Fixation must match too — FFPE and fresh frozen are effectively different assays,
+# and the published advice is not to compare across storage conditions at all.
+assert len({m["fixation"] for m in per_section.values()}) == 1, (
+    "mixed fixation: these sections should not be compared directly"
+)
+```
+
+## Rosetta panel
+
+Run metadata lives in the vendor output rather than in either ecosystem's object model, so
+both languages read the same files.
+
+```r
+library(jsonlite)
+
+meta <- fromJSON("data/cache/toy_section/experiment.xenium")
+str(meta, max.level = 1)
+
+decisions <- c("fixation", "section_thickness_um", "permeabilisation",
+               "chemistry_version", "registration_method", "segmentation_method")
+setdiff(decisions, names(meta))   # what is not recorded
+```
+
+## Failure mode
+
+**What it produces.** Two sections cut at different thicknesses. Cells in the thicker section
+capture more transcripts, cluster separately, and read as a distinct high-expression state.
+
+A second version is worse because it is harder to see: two conditions collected years apart
+from an FFPE archive, where block age has driven DV200 from around 70% to around 31%
+[@ffpe_st_benchmark_2023]. Lower RNA quality reduces unique gene counts, so the older
+condition looks transcriptionally quieter. That is a storage artifact wearing the costume of
+a biological finding.
+
+**The diagnostic that catches it.** Plot total counts per cell by section against recorded
+thickness, fixation type and block year before interpreting any count difference. If a
+technical variable explains it, you have found a knife setting or an archive, not a cell
+state.
+
+## Self-check
+
+### Question 1
+
+Which of the pipeline steps does your methods section actually record?
+
+::: {.callout-note collapse="true"}
+## Answer
+
+Usually platform and chemistry version, sometimes thickness, rarely anything else. Time to
+fixation, permeabilisation conditions and segmentation parameters are the three most
+consequential omissions.
+
+Write down what you know. The remainder is your list of alternative explanations, and you
+want it in writing before you are attached to a result.
+:::
+
+### Question 2
+
+Your two conditions came from FFPE blocks archived eight years apart. What have you
+measured?
+
+::: {.callout-note collapse="true"}
+## Answer
+
+Condition and RNA quality together, inseparably. Block age drives DV200 substantially —
+around 70% for recent blocks against 31% for decade-old ones in one study — and lower
+initial quality reduces unique gene counts [@ffpe_st_benchmark_2023].
+
+The published advice is not to compare across storage conditions at all
+[@ffpe_ff_cardiac_2023]. If you must, measure DV200 per block, put it in the model, and
+state plainly that condition and quality are confounded. That is a limitation, not a
+correction.
+:::
+
+### Question 3
+
+A cluster appears in one section and not the other. What do you check first?
+
+::: {.callout-note collapse="true"}
+## Answer
+
+Total counts per cell in each section, against recorded thickness and cells recovered. If
+the cluster is defined by overall expression level rather than by specific markers, you are
+probably looking at a capture or thickness difference.
+
+That check costs one plot and rules out the most common artifact. Check it before anything
+biological.
+:::
+
+## Going further
+
+What the platform can measure at all is lesson 5. Segmentation, the last step before your
+matrix, is lesson 7. The statistical consequence of spatially varying capture efficiency is
+lesson 12.
+
+Deliberately omitted: bench execution. Buffers, incubation times and instrument settings
+belong to the vendor protocol and change between chemistry versions faster than a tutorial
+can honestly track.
+
+### Sources
+
+::: {.callout-note}
+**Citation status: partial.** DOIs read from publisher records on 2026-09-01. Platform
+thresholds are drawn from a core facility's published specifications and should be
+re-checked against current vendor documentation, since they move with each chemistry
+release. The cardiac FFPE comparison is one tissue and one study; magnitudes will differ in
+yours, the direction will not.
+:::

@@ -1,0 +1,101 @@
+---
+title: "Plotting spatial data honestly"
+subtitle: "Lesson 16 — Working at real scale"
+runtime: "3 min"
+peak-memory: "under 2 GB"
+data-tier: "Committed toy"
+builds: "Verify alignment, Spot a silent failure"
+status: draft
+citations-verified: false
+---
+
+## The decision this serves
+
+Your figure has 22 cell types in a rainbow palette and your co-author cannot read it. Decide what the figure is actually for.
+
+::: {.callout-important}
+**Scale.** Runs in 3 min, peak memory under 2 GB.
+Watch **category count, past about eight** — that is what stops being safe on a full section.
+:::
+
+## Concept
+
+Equal aspect ratio, scale bars in microns, one hue for continuous quantities, and the readable ceiling of about eight categorical colours.
+
+**The assumption that breaks first.** That a palette which looks fine on your monitor is readable to your readers.
+
+## Runnable notebook
+
+One section plotted four ways, with the palette checked computationally for colour-vision deficiency
+
+Data tier: **Committed toy**
+
+```{python}
+#| label: setup
+# TODO
+```
+
+```{python}
+#| label: assert-truth
+# Minimum pairwise colour distance under simulated deuteranopia exceeds a stated threshold
+# Sabotage the code this guards and confirm the assert FAILS before you commit.
+```
+
+## Rosetta panel
+
+The same four figures in R, since figure code is where readers most often switch languages
+
+```r
+# TODO
+```
+
+## Failure mode
+
+**What it produces.** A rainbow scale invents boundaries that are not in the data, and twenty categories at once hide the pattern the figure was meant to show.
+
+**The diagnostic that catches it.** Render the palette through a colour-vision deficiency simulation and compute the distances rather than eyeballing them.
+
+## Self-check
+
+### Question 1
+
+Is the aspect ratio equal?
+
+::: {.callout-note collapse="true"}
+## Answer
+
+TODO
+:::
+
+### Question 2
+
+Did you compute the colour-vision check or eyeball it?
+
+::: {.callout-note collapse="true"}
+## Answer
+
+TODO
+:::
+
+### Question 3
+
+Can you see the image under the points?
+
+::: {.callout-note collapse="true"}
+## Answer
+
+TODO
+:::
+
+## Going further
+
+Interactive exploration is a tool, not a figure.
+
+### Sources
+
+::: {.callout-warning}
+**Citations not yet verified.** Verify against PubMed — title, journal, year, volume,
+pages, DOI — then set `citations-verified: true`.
+:::
+
+TODO

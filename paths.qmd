@@ -1,0 +1,98 @@
+---
+title: "Reader paths"
+---
+
+Nobody starts at lesson one. Pick the route that matches why you are here.
+
+## I am planning an experiment
+
+*About to generate data; nothing has been cut yet* · Assumes: No analysis background needed
+
+Read this before the tissue is cut. Every other route on this site assumes the design is already fixed, and most of what goes wrong later was decided here.
+
+1. [Designing the experiment before there is data](lessons/L01-designing-the-experiment-before-there-is-data.qmd)
+1. [From block to matrix: the steps that constrain your analysis](lessons/L02-from-block-to-matrix-the-steps-that-constrain-yo.qmd)
+1. [Panel design and the codebook](lessons/L03-panel-design-and-the-codebook.qmd)
+1. [Platforms and resolution regimes](lessons/L05-platforms-and-resolution-regimes.qmd)
+1. [Deconvolution returns proportions, not cells](lessons/L08-deconvolution-returns-proportions-not-cells.qmd)
+
+5 lessons.
+
+## I just got my first run back
+
+*Wet-lab scientist with data and no prior single-cell analysis* · Assumes: You ran the experiment; no Python or R assumed
+
+Starts with what your own bench decisions did to the data, then the three checks that catch most early mistakes.
+
+1. [From block to matrix: the steps that constrain your analysis](lessons/L02-from-block-to-matrix-the-steps-that-constrain-yo.qmd)
+1. [What spatial data is, and what it is not](lessons/L04-what-spatial-data-is-and-what-it-is-not.qmd)
+1. [Platforms and resolution regimes](lessons/L05-platforms-and-resolution-regimes.qmd)
+1. [Coordinate systems, and the flipped axis](lessons/L06-coordinate-systems-and-the-flipped-axis.qmd)
+1. [Segmentation is upstream of everything](lessons/L07-segmentation-is-upstream-of-everything.qmd)
+1. [The noise floor you were given for free](lessons/L09-the-noise-floor-you-were-given-for-free.qmd)
+1. [Plotting spatial data honestly](lessons/L16-plotting-spatial-data-honestly.qmd)
+
+7 lessons.
+
+## I do single-cell analysis and want to learn spatial
+
+*Computational biologist fluent in scanpy or Seurat* · Assumes: Clustering, annotation, integration and differential expression
+
+The longest route, and the one closest to a course. Roughly a third of your existing toolkit transfers unchanged, a third transfers with a twist that will bite you, and a third does not exist in dissociated data at all. The order below is built around that split: what is different, then what generated it, then the familiar steps that behave differently here, then the genuinely new statistics.
+
+1. [Platforms and resolution regimes](lessons/L05-platforms-and-resolution-regimes.qmd)
+1. [Coordinate systems, and the flipped axis](lessons/L06-coordinate-systems-and-the-flipped-axis.qmd)
+1. [From block to matrix: the steps that constrain your analysis](lessons/L02-from-block-to-matrix-the-steps-that-constrain-yo.qmd)
+1. [Segmentation is upstream of everything](lessons/L07-segmentation-is-upstream-of-everything.qmd)
+1. [The noise floor you were given for free](lessons/L09-the-noise-floor-you-were-given-for-free.qmd)
+1. [Cell typing inherits the reference's blind spots](lessons/L10-cell-typing-inherits-the-reference-s-blind-spots.qmd)
+1. [Neighbourhood graphs and niches](lessons/L11-neighbourhood-graphs-and-niches.qmd)
+1. [Your neighbours are not independent samples](lessons/L12-your-neighbours-are-not-independent-samples.qmd)
+1. [Ligand and receptor is co-expression until proven otherwise](lessons/L13-ligand-and-receptor-is-co-expression-until-prove.qmd)
+1. [Section is batch, and batch is confounded with biology](lessons/L14-section-is-batch-and-batch-is-confounded-with-bi.qmd)
+1. [When the data does not fit in memory](lessons/L15-when-the-data-does-not-fit-in-memory.qmd)
+1. [An analysis someone else can run](lessons/L17-an-analysis-someone-else-can-run.qmd)
+
+12 lessons.
+
+## I am reviewing someone else's spatial paper
+
+*Referee or reader checking a published claim* · Assumes: General familiarity with genomics papers
+
+Ordered as a checklist. Each lesson names a claim the data may not support and the figure that would settle it.
+
+1. [From block to matrix: the steps that constrain your analysis](lessons/L02-from-block-to-matrix-the-steps-that-constrain-yo.qmd)
+1. [What spatial data is, and what it is not](lessons/L04-what-spatial-data-is-and-what-it-is-not.qmd)
+1. [Segmentation is upstream of everything](lessons/L07-segmentation-is-upstream-of-everything.qmd)
+1. [Deconvolution returns proportions, not cells](lessons/L08-deconvolution-returns-proportions-not-cells.qmd)
+1. [Your neighbours are not independent samples](lessons/L12-your-neighbours-are-not-independent-samples.qmd)
+1. [Ligand and receptor is co-expression until proven otherwise](lessons/L13-ligand-and-receptor-is-co-expression-until-prove.qmd)
+1. [Section is batch, and batch is confounded with biology](lessons/L14-section-is-batch-and-batch-is-confounded-with-bi.qmd)
+
+7 lessons.
+
+## I am building a method
+
+*Developer who needs the object model and the scale limits* · Assumes: Comfortable with array APIs and chunked computation
+
+Skips the interpretation lessons and concentrates on representation, calibration and cost.
+
+1. [Coordinate systems, and the flipped axis](lessons/L06-coordinate-systems-and-the-flipped-axis.qmd)
+1. [Neighbourhood graphs and niches](lessons/L11-neighbourhood-graphs-and-niches.qmd)
+1. [Your neighbours are not independent samples](lessons/L12-your-neighbours-are-not-independent-samples.qmd)
+1. [When the data does not fit in memory](lessons/L15-when-the-data-does-not-fit-in-memory.qmd)
+1. [An analysis someone else can run](lessons/L17-an-analysis-someone-else-can-run.qmd)
+
+5 lessons.
+
+## I have one afternoon
+
+*Anyone about to trust a result and short of time* · Assumes: Nothing
+
+The three failures that account for most of what goes wrong: coordinates that do not line up, segmentation nobody looked at, and a test that assumed independent samples.
+
+1. [Coordinate systems, and the flipped axis](lessons/L06-coordinate-systems-and-the-flipped-axis.qmd)
+1. [Segmentation is upstream of everything](lessons/L07-segmentation-is-upstream-of-everything.qmd)
+1. [Your neighbours are not independent samples](lessons/L12-your-neighbours-are-not-independent-samples.qmd)
+
+3 lessons.

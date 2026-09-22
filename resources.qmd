@@ -1,0 +1,135 @@
+---
+title: "Resources"
+subtitle: "What already exists, and what each one is actually for"
+date-modified: "2026-09-01"
+---
+
+Most of what you need to learn spatial omics already exists somewhere public. The problem
+is not scarcity — it is that a search returns forty links with no indication of which are
+maintained, which assume you already know scanpy, and which were written for a chemistry
+version that no longer ships.
+
+This page is a filter, not an index. If you want exhaustive coverage, the curated lists
+below do that better and are maintained by people closer to the tools.
+
+## What gets listed here
+
+- **It teaches, or it is a primary reference.** Marketing pages and press releases do not
+  qualify, however informative they look.
+- **Its level is stateable.** If we cannot say who it is for, it is not useful to send
+  anyone to.
+- **It is reachable without a login, a licence, or an institutional subscription.**
+- **It was checked on the date shown.** An unchecked link is a claim we are not making.
+
+What does not get listed: anything we have not opened; anything whose last commit predates
+a major API break in the tool it teaches; and any resource we would not send a specific
+person to for a specific reason.
+
+::: {.callout-note}
+**Link, never host.** Everything here points at the original. We do not mirror notebooks,
+reproduce figures, or copy text — most of this material is licensed for use, not for
+redistribution, and "free to read" is not permission to copy.
+:::
+
+::: {.callout-warning}
+**Verification status.** Entries with a URL were opened and confirmed on the date in the
+table. Entries listed **without** a link are ones we know exist by name from the aggregator
+lists but have not yet opened ourselves — they are recorded so the search is not repeated,
+and they are deliberately not linked until checked. That is the same rule the lessons apply
+to citations.
+:::
+
+## Start here: the curated lists
+
+Three general-purpose lists cover the tool landscape more completely than we intend to.
+Read one of these first; come back here for opinions about what to actually use.
+
+| Resource | What it is | Checked |
+|---|---|---|
+| [drieslab/awesome-spatial-data-analysis](https://github.com/drieslab/awesome-spatial-data-analysis) | Tools and methods for spatial transcriptomic analysis, from the Giotto authors | 2026-09-01 |
+| [crazyhottommy/awesome_spatial_omics](https://github.com/crazyhottommy/awesome_spatial_omics) | Tools **and review papers** — the strongest starting point if you want the literature rather than the software | 2026-09-01 |
+| [p-gueguen/Spatial_transcriptomics_tools](https://github.com/p-gueguen/Spatial_transcriptomics_tools) | The best-organised of the three: tags each entry by language and interface, including GUI tools | 2026-09-01 |
+| [SindiLab/Deep-Learning-in-Spatial-Transcriptomics-Analysis](https://github.com/SindiLab/Deep-Learning-in-Spatial-Transcriptomics-Analysis) | ML and deep learning methods by analysis stage, in a table with languages and years | 2026-09-01 |
+
+## Courses and workshop material
+
+The most useful free teaching material in this field is workshop repositories. They are
+written to be taught from, so they assume less than documentation does and explain more
+than a paper does. The cost is that they are snapshots — a 2022 workshop teaches a 2022 API.
+
+| Resource | Language | For whom | Checked |
+|---|---|---|---|
+| [theislab/spatial_scog_workshop_2022](https://github.com/theislab/spatial_scog_workshop_2022) | Python | SCOG virtual workshop notebooks with per-session conda environments. Older, but from the group behind much of the scverse spatial stack | 2026-09-01 |
+| [fhausmann/workshop_spatial](https://github.com/fhausmann/workshop_spatial) | Python | Explicitly a beginner's course on Visium: visualisation, expression patterns, clustering. Start here if you have never analysed spatial data | 2026-09-01 |
+| [ashoks773/SpatialTranscriptomicsWorkflow](https://github.com/ashoks773/SpatialTranscriptomicsWorkflow) | Python | End-to-end walkthrough on a public hepatocellular carcinoma dataset, from download to annotation | 2026-09-01 |
+| `drieslab/giotto_workshop_2024` | R | Giotto workshop materials. Listed in the drieslab organisation; not yet opened here | — |
+| `spatial-omics-tutorials` (BIML 2025) | Python / R | Tutorials and best practices from BIML 2025. Catalogued in p-gueguen's list; not yet opened here | — |
+| `MGC-BioSB-Spatial-Omics-Analysis-2025` | Python | Workshop materials. Catalogued in p-gueguen's list; not yet opened here | — |
+
+## Best practices and reference texts
+
+| Resource | Notes |
+|---|---|
+| Best practices for statistical analysis of spatial transcriptomics (Bioconductor) | R-centric principles for statistical analysis. Catalogued in p-gueguen's list; URL not yet verified here |
+
+::: {.callout-important}
+This section is thin, and that is a real gap rather than an oversight. If you know of a
+maintained, general best-practices text for spatial analysis, it belongs here — open an
+issue.
+:::
+
+## Tool ecosystems
+
+Choose an ecosystem before choosing a tool. Moving between them mid-project costs more than
+either tool saves, and most methods exist in only one.
+
+**Python / scverse.** `squidpy` for spatial statistics and neighbourhood analysis;
+`spatialdata` for the object model and coordinate systems (lesson 6); `bento` for
+subcellular analysis; `scvi-tools` for the deep-learning family including `DestVI`.
+
+**R / Bioconductor and beyond.** `Giotto` (also has a Python interface); `Seurat` for
+spatial objects; `Voyager` on `SpatialFeatureExperiment`, from the Pachter lab, oriented
+around exploratory spatial data analysis; `spacexr` for RCTD deconvolution; `nnSVG` for
+spatially variable genes — notable as one of the better-calibrated options, see lesson 12;
+`semla` and `SPATA2` as general toolkits.
+
+**Visualisation and browsers.** `Vitessce` (JavaScript) for integrated exploration;
+`rakaia` for in-browser interactive analysis.
+
+**GUI tools.** `VR-Omics` offers end-to-end processing without code. Worth knowing this
+category exists — a substantial part of the field does not work at a command line, and the
+lessons on this site assume you do.
+
+**Platform-specific.** `CosMx-Analysis-Scratch-Space` for CosMx SMI.
+
+*Individual tool URLs are catalogued in the three lists above and are not duplicated here.*
+
+## Benchmarks worth reading before you choose a method
+
+These are the papers behind the numbers quoted in the lessons. Full entries with DOIs are in
+`references.bib`.
+
+| Topic | Finding that should change what you do | Lesson |
+|---|---|---|
+| Imaging platform benchmarking | False discovery rate differs substantially by platform, and by chemistry version within a platform | 5 |
+| Xenium quality assessment | Detection efficiency 1.2–1.5× Chromium v2 — targeted platforms are not "low quality" | 5 |
+| Segmentation benchmarking | Cell-type calling accuracy ranged 35–74% across methods on the same simulated tissue | 7 |
+| Spatially variable gene benchmarking | Most methods produce poorly calibrated p-values; rank-based selection recommended over significance cutoffs | 12 |
+| Gene-category enrichment | Over 500-fold inflation of false positives with spatially autocorrelated phenotypes | 12 |
+
+## Public data
+
+See @sec-data-strategy for how this site uses public datasets and why none of them are
+committed to the repository. Provenance, licence and checksum for every dataset actually
+used live in `data/SOURCES.md`, along with searches that found nothing — a negative result
+is a finding and stops the next person repeating it.
+
+## Contributing an entry
+
+Open an issue or a pull request with the URL, one sentence on who it is for, and the date
+you opened it. Entries without a stated audience get sent back, because "useful resource"
+is not information anyone can act on.
+
+If you find a dead link or a resource that has fallen behind an API break, that is equally
+worth reporting. A resource page that rots is worse than no resource page, because it looks
+maintained.

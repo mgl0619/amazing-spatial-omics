@@ -1,0 +1,11 @@
+_site/
+data/cache/
+.ipynb_checkpoints/
+__pycache__/
+.venv/
+.DS_Store
+
+# Deliberately NOT ignored, and each for a reason:
+#   _freeze/    the executed cache must be committed
+#   uv.lock     exact Python versions and hashes, cross-platform
+#   renv.lock   the same guarantee for the R side

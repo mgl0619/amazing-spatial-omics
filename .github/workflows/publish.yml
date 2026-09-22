@@ -1,0 +1,89 @@
+name: publish
+
+# Renders the book and deploys it to GitHub Pages.
+#
+# This workflow must never re-run the heavy analysis. It renders from the committed
+# freeze cache; the separate `reexecute` workflow rebuilds from source on demand and
+# is what proves the cache is honest.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Let a running deploy finish rather than cancelling it half-published.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.5.x"        # pin the tool, not just the dependencies
+          enable-cache: true
+
+      - uses: quarto-dev/quarto-actions/setup@v2
+
+      - name: Check the freeze cache
+        run: |
+          if [ -f .freeze-required ] && [ ! -d _freeze ]; then
+            echo "::error::.freeze-required is present but _freeze is not."
+            echo "Executed output must be committed, not generated on the author's"
+            echo "machine only. Run 'quarto render' locally and commit _freeze/."
+            exit 1
+          fi
+          if [ ! -d _freeze ]; then
+            echo "::warning::No freeze cache yet — nothing has been executed."
+            echo "Create an empty .freeze-required file once the first notebook runs;"
+            echo "this check then becomes fatal, which is the point."
+          fi
+
+      - name: Check the lock file is current
+        run: |
+          if [ -f uv.lock ]; then
+            uv lock --check
+          else
+            echo "::warning::No uv.lock committed. Run 'uv sync' locally and commit it."
+          fi
+
+      - name: Render from cache
+        run: quarto render --no-execute
+
+      - name: Report what is not finished
+        run: |
+          {
+            echo "## Build status"
+            echo ""
+            echo "| Check | Count |"
+            echo "| --- | --- |"
+            echo "| Lessons | $(ls lessons/*.qmd | wc -l) |"
+            echo "| Written in full | $(grep -l '^status: written' lessons/*.qmd | wc -l) |"
+            echo "| Citations verified | $(grep -l '^citations-verified: true' lessons/*.qmd | wc -l) |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    # Only publish from main. Pull requests build but do not deploy.
+    if: github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,269 @@
+---
+title: "Your neighbours are not independent samples"
+subtitle: "Lesson 12 — Asking spatial questions"
+runtime: "15 min"
+peak-memory: "4 GB"
+data-tier: "Simulated"
+builds: "Choose a valid null, Spot a silent failure"
+status: written
+citations-verified: partial
+---
+
+## The decision this serves
+
+You have 300 spatially variable genes at *q* below 0.05 and a coherent biological story.
+Decide whether the test that produced them assumed something your tissue violates.
+
+::: {.callout-important}
+**Scale.** Runs in about 15 min, peak memory 4 GB. Watch **any test that assumes
+independent observations** — that is what stops being safe the moment your samples have
+coordinates.
+:::
+
+## Concept
+
+Every test you inherited from dissociated single-cell analysis assumes its observations are
+independent draws. Dissociation at least destroyed the spatial arrangement that would have
+made the violation systematic. In intact tissue the arrangement is preserved, because it is
+the thing you came to study.
+
+Cells near each other share a niche, an oxygen gradient, a lineage history and a local
+microenvironment. Their expression is correlated for reasons unrelated to whatever
+hypothesis you are testing. Near things are more related than distant things — and in
+spatial biology this is both the signal and the problem. It is the signal because spatial
+structure is why you paid for the assay. It is the problem because the structure is present
+**under the null too**.
+
+### The quantity, and its units
+
+Spatial autocorrelation is usually summarised by Moran's *I*: dimensionless, running
+roughly from −1 to +1, with expectation −1/(*n*−1) — just below zero — when there is no
+spatial structure.
+
+The critical property is that **Moran's *I* is not a property of a gene**. It is a property
+of a gene *and a weights matrix*. Change the neighbourhood definition and the number
+changes. A reported *I* without a stated graph is not interpretable, which is the same
+disease lesson 11 diagnoses from a different angle.
+
+The mechanism that breaks the p-value is not mysterious. A test compares a statistic to the
+spread expected under the null, and that spread depends on how much independent information
+you have. Under positive autocorrelation, ten thousand cells do not carry ten thousand
+cells' worth of information — neighbours partly tell you the same thing twice. The
+effective sample size is smaller, sometimes by more than an order of magnitude. The test
+does not know this. It divides by a standard error computed as though every cell were a
+fresh draw, and returns a p-value that is too small. The result is **anticonservative**:
+too many rejections, confidently.
+
+### How bad is it, actually
+
+This is where the field has done the work, and the answer is: it depends heavily on the
+method, and most of them are miscalibrated.
+
+A systematic benchmark of SVG detection methods found that **most methods produced poorly
+calibrated p-values**, systematically under- or over-stating significance. Its practical
+recommendation is worth taking seriously because it is unusual: select SVGs by a **fixed
+rank threshold** — the top 2,000 genes by score, say — rather than by a significance cutoff
+[@svg_benchmark_2025]. If the p-values are not trustworthy, ranking by score at least gives
+you a reproducible selection rule.
+
+Not every method is broken. nnSVG reports false positive proportions of 1.5% and 1.0% at a
+nominal 0.05 cutoff across two null simulations, which is conservative rather than
+anticonservative [@nnsvg_2023]. The lesson is not "spatial statistics is hopeless," it is
+"calibration is a property of the specific method and you have to check."
+
+The same problem reaches differential expression. The Wilcoxon rank-sum test — the default
+in most single-cell workflows — shows inflated Type I error under strong spatial
+correlation [@st_de_typeI_2025_preprint].
+
+### Why the wrong gene list looks right, and then gets worse
+
+When a miscalibrated test returns three hundred genes, those genes are not a random sample
+of the transcriptome. They are the genes with the strongest spatial structure — the genes
+that track anatomy. Anatomy is biologically coherent, so the list is enriched for coherent
+pathways. Enrichment analysis returns regionally sensible terms and the story writes
+itself.
+
+The enrichment step is not neutral here; it amplifies the problem. Applying standard gene
+category enrichment to spatially resolved transcriptomic atlas data produced an **over
+500-fold average inflation of false-positive associations with random phenotypes**, and the
+estimated false-positive rate of a GO category correlated with how often that category is
+reported as significant in the literature [@gcea_false_positives_2021]. That work is in
+brain atlas data, so applying the magnitude directly to a tissue section is an inference
+rather than a finding — but the mechanism is the same, and the correlation with publication
+frequency is a hard thing to read comfortably.
+
+So the failure is two-stage. A miscalibrated test hands you genes that track anatomy, and
+an enrichment method with its own autocorrelation-driven bias turns those into a
+pathway story. Nothing looks broken at any point.
+
+### What a permutation has to preserve
+
+The instinct to permute is right; what you shuffle decides what you are testing, and the
+obvious shuffle tests the wrong thing.
+
+Shuffle expression freely across all cells and you destroy the spatial structure entirely.
+The resulting null says "there is no spatial pattern of any kind." Nearly every gene
+rejects it, because tissue has structure. You have built a test for the presence of anatomy
+and then discovered anatomy.
+
+What you usually want is a null that **keeps** the spatial structure and breaks only the
+association in question: toroidal shifts of the whole pattern, permutation restricted
+within anatomical regions or density strata, or simulation from a fitted spatial covariance
+model. The gene-category work above makes the same move in a different setting —
+randomising the *phenotype* while preserving its autocorrelation, rather than randomising
+the genes [@gcea_false_positives_2021]. Each choice encodes a different assumption about
+what counts as background, and being explicit about which one you made is most of the work.
+
+**The assumption that breaks first.** That neighbouring cells are independent observations.
+Once that is false, every downstream p-value is a number whose meaning you have not
+established.
+
+## Runnable notebook
+
+Simulated tissue with no true signal; run a naive test and count the false positives.
+
+Data tier: **Simulated** — the only tier where the right answer is known.
+
+::: {.callout-warning}
+**Not yet executed.** No output shown and nothing cached.
+:::
+
+```{python}
+#| label: null-tissue
+import numpy as np
+import squidpy as sq
+from data.simulate import simulate_null_tissue
+
+# Spatially structured tissue. No gene has a true spatial signal.
+adata, truth = simulate_null_tissue(n_cells=4000, n_genes=500, seed=0)
+assert truth["n_true_svg"] == 0
+
+sq.gr.spatial_neighbors(adata, radius=30.0, coord_type="generic")
+sq.gr.spatial_autocorr(adata, mode="moran", n_perms=100)
+
+naive_fpr = (adata.uns["moranI"]["pval_norm_fdr_bh"] < 0.05).mean()
+print(f"naive false positive rate: {naive_fpr:.3f}")   # nominal is 0.05
+```
+
+```{python}
+#| label: assert-calibration
+# These asserts ARE the lesson. Sabotage the structure-preserving null —
+# replace it with a free shuffle — and confirm the second assert fails.
+
+assert naive_fpr > 0.15, (
+    "the naive test should be badly miscalibrated on autocorrelated null tissue; "
+    "if it is not, the simulation has no spatial structure and teaches nothing"
+)
+
+assert 0.02 < corrected_fpr < 0.08, (
+    f"structure-preserving null should sit near nominal 0.05, got {corrected_fpr}"
+)
+
+# Guard against the vacuous assert: confirm something was actually tested.
+assert len(pvals) == adata.n_vars > 0
+```
+
+## Rosetta panel
+
+The same null data through the R route, reporting its own false positive rate. A method is
+not exempt from calibration because it is in another language.
+
+```r
+library(Seurat)
+
+obj <- readRDS("data/cache/null_tissue.rds")
+obj <- FindSpatiallyVariableFeatures(
+  obj, assay = "Spatial", features = VariableFeatures(obj),
+  selection.method = "moransi"
+)
+
+svf <- SpatiallyVariableFeatures(obj, selection.method = "moransi")
+cat("R route flagged", length(svf), "of", nrow(obj), "genes on null data\n")
+```
+
+## Failure mode
+
+**What it produces.** Confident p-values for what is only tissue architecture. The gene
+list looks biologically coherent because anatomy is coherent, and enrichment analysis then
+converts it into a pathway narrative with its own inflated error rate.
+
+**The diagnostic that catches it.** Run the identical pipeline — same graph, same test,
+same correction — on simulated tissue with no signal, and count what comes back
+significant. If it exceeds your nominal rate, you now know your list's contamination level.
+
+Two cheaper checks worth running first. Plot the p-value histogram: under a correct null it
+is flat, and a spike at zero on data you believe has little signal is the test telling you
+its assumption is false. And if your method is one the benchmark found miscalibrated,
+switch to rank-based selection rather than a significance cutoff [@svg_benchmark_2025].
+
+## Self-check
+
+### Question 1
+
+What is your false positive rate on null data?
+
+::: {.callout-note collapse="true"}
+## Answer
+
+You do not know until you measure it, and the only way is to run your exact pipeline on
+tissue where you know there is no signal. That is what the simulated tier exists for.
+
+Do not assume it from the literature either — the benchmark's point is that calibration
+varies by method, with some conservative and many anticonservative [@svg_benchmark_2025;
+@nnsvg_2023]. Yours depends on your graph, your test and your tissue's autocorrelation
+structure.
+:::
+
+### Question 2
+
+What exactly does your permutation shuffle?
+
+::: {.callout-note collapse="true"}
+## Answer
+
+Whatever you shuffle is what you have declared exchangeable under the null, and that choice
+*is* the hypothesis.
+
+A free shuffle across all cells destroys spatial structure, so it tests "is there any
+anatomy here" — a question tissue always answers yes to. A structure-preserving
+randomisation such as a toroidal shift, or permutation within anatomical regions, keeps the
+architecture and breaks only the association you are asking about.
+:::
+
+### Question 3
+
+Your gene list is enriched for coherent pathways. How much comfort should that give you?
+
+::: {.callout-note collapse="true"}
+## Answer
+
+Very little on its own, and this is the counterintuitive part. Coherence is what a
+miscalibrated spatial test produces, because the genes it favours are the ones tracking
+anatomy, and anatomy is coherent.
+
+Worse, the enrichment step has its own autocorrelation-driven inflation — over 500-fold for
+random phenotypes in brain atlas data, with false-positive rates correlating with how often
+categories get reported as significant [@gcea_false_positives_2021]. So a plausible pathway
+story is weak evidence that the underlying gene list is real. Rerun both stages under a
+structure-preserving null before believing either.
+:::
+
+## Going further
+
+Neighbourhood graph construction, which decides the weights matrix everything here depends
+on, is lesson 11. Ligand–receptor inference inherits the same problem in a more disguised
+form and is lesson 13.
+
+Deliberately omitted: a recommendation of which SVG method to use. The benchmark compares
+them on stated criteria and that comparison will age better than a recommendation here
+[@svg_benchmark_2025].
+
+### Sources
+
+::: {.callout-note}
+**Citation status: partial.** Every source cited on this page was located and its DOI read
+from the publisher record on 2026-09-01. Author lists and page numbers are not yet
+complete in `references.bib`, and two entries are unrefereed preprints, flagged as such.
+The 500-fold enrichment inflation is from brain atlas data; applying its magnitude to
+tissue sections is an inference and is marked as one in the text.
+:::

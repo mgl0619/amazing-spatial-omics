@@ -1,0 +1,103 @@
+---
+title: "Coordinate systems, and the flipped axis"
+subtitle: "Lesson 6 — Before you trust anything"
+runtime: "2 min"
+peak-memory: "under 2 GB"
+data-tier: "Committed toy"
+builds: "Verify alignment, Spot a silent failure"
+status: written
+citations-verified: false
+---
+
+## The decision this serves
+
+Your tissue map looks anatomically right and your PI believes it. Decide whether the points and the image are actually in the same coordinate system before it goes in the grant.
+
+::: {.callout-important}
+**Scale.** Runs in 2 min, peak memory under 2 GB.
+Watch **nothing at this size** — that is what stops being safe on a full section.
+:::
+
+## Concept
+
+<!-- written; see site-preview -->
+
+TODO — port prose from site-preview/index.html
+
+**The assumption that breaks first.** That the transformation is identity because the plot looks reasonable.
+
+## Runnable notebook
+
+Overlay points on the image, then break the transform on purpose and look again
+
+Data tier: **Committed toy**
+
+```{python}
+#| label: setup
+# TODO
+```
+
+```{python}
+#| label: assert-truth
+# Transformed extent equals image extent within tolerance; a known landmark lands on itself
+# Sabotage the code this guards and confirm the assert FAILS before you commit.
+```
+
+## Rosetta panel
+
+The same overlay in R, and the point at which the two ecosystems disagree about the origin
+
+```r
+# TODO
+```
+
+## Failure mode
+
+**What it produces.** A flipped y-axis produces a tissue map that is anatomically plausible and entirely mirrored. Nothing errors.
+
+**The diagnostic that catches it.** Overlay on the image with an asymmetric landmark visible; the mirror is obvious only then.
+
+## Self-check
+
+### Question 1
+
+Is your scale bar in microns or pixels?
+
+::: {.callout-note collapse="true"}
+## Answer
+
+Check, do not assume. Read the microns-per-pixel value from the run metadata and confirm your plotted scale bar was drawn from it. If your bar is in pixels, every distance threshold downstream — neighbourhood radii, interaction distances — is scaled by an unknown constant.
+:::
+
+### Question 2
+
+Which element defines the extrinsic system?
+
+::: {.callout-note collapse="true"}
+## Answer
+
+Whichever element you registered the others into, and it should be a deliberate choice rather than whichever loaded first. In SpatialData that is the coordinate system named in the transformation; ask which element defines it and what the transformation to it actually is. If the answer is identity for everything, nobody registered anything.
+:::
+
+### Question 3
+
+What does the overlay look like if you skip the transform?
+
+::: {.callout-note collapse="true"}
+## Answer
+
+Often, entirely reasonable — which is the problem. Points and image may span similar numeric ranges by coincidence, so the overlay looks plausible while being offset or mirrored. That is why the check requires an asymmetric landmark: with a symmetric field of view, skipping the transform and applying it correctly can produce indistinguishable pictures.
+:::
+
+## Going further
+
+Registration across sections is lesson 11.
+
+### Sources
+
+::: {.callout-warning}
+**Citations not yet verified.** Verify against PubMed — title, journal, year, volume,
+pages, DOI — then set `citations-verified: true`.
+:::
+
+SpatialData framework paper; the OME-NGFF specification. Both need verifying against the published record before citation.

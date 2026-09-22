@@ -1,0 +1,46 @@
+---
+title: "Data strategy"
+---
+
+## Why three tiers {#sec-data-strategy}
+
+The data does not fit. A single imaging run is gigabytes; a high-resolution section is
+larger. It cannot be committed, cannot be executed in CI, and cannot be downloaded before
+lesson one. This was decided before any lesson was written.
+
+## Three tiers
+
+### Committed toy
+
+**under 10 MB**, in the repository.
+
+Mechanics: the object model, the API, the plot call
+
+*Rule that keeps it honest.* Small enough that lesson one needs no download.
+
+### Fetched public
+
+**0.1 to 10 GB**, fetch script pinned to an accession, cached locally.
+
+The real analysis on real tissue, at real scale
+
+*Rule that keeps it honest.* Never committed. Checksum, provenance and licence recorded per dataset. No patient data, and nothing re-identifiable from tissue morphology.
+
+### Simulated
+
+**tiny**, generator script in the repository.
+
+Ground truth — the only tier where the right answer is known
+
+*Rule that keeps it honest.* The most pedagogically valuable tier and the one most often skipped. It is the only place a reader can measure how far their answer landed from the truth.
+
+## Rules
+
+- Never commit primary data. Commit the script that fetches it, pinned to a specific
+  version or accession, and record the checksum.
+- Record provenance and licence per dataset in `data/SOURCES.md`. Vendor demo data,
+  consortium data and paper supplements have different terms.
+- Never use patient data in teaching material, and never data that could be
+  re-identified from tissue morphology.
+- The simulated tier is the most pedagogically valuable and the most often skipped. It is
+  the only place a reader can measure how far their answer landed from the truth.

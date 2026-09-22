@@ -1,0 +1,265 @@
+---
+title: "Panel design and the codebook"
+subtitle: "Lesson 3 — How the data was made"
+runtime: "15 min"
+peak-memory: "8 GB"
+data-tier: "Fetched public"
+builds: "Name the regime, Spot a silent failure"
+status: written
+citations-verified: partial
+---
+
+## The decision this serves
+
+You are choosing 300 genes for a targeted panel and your favourite marker did not make the
+draft. Decide what the panel can and cannot answer before it is ordered, because you cannot
+add a gene afterwards.
+
+::: {.callout-important}
+**Scale.** Runs in about 15 min, peak memory 8 GB. Watch **panel size** — the constraint is
+optical, not commercial, and it tightens as transcript density rises.
+:::
+
+## Concept
+
+A targeted panel is the only irreversible analytical decision in this entire pipeline.
+Segmentation can be redone. Normalisation can be redone. A gene that is not on the panel is
+not in the tissue as far as your data is concerned, and no method recovers it.
+
+### How a codebook works, and why that constrains your genes
+
+Imaging platforms cannot distinguish hundreds of species in one image, so identity is
+carried combinatorially. Each gene gets a binary barcode across imaging rounds — which
+rounds it lights up in — and the codebook is the assignment of barcodes to genes.
+
+Errors are inevitable: a probe fails to bind and a 1 reads as 0, or background is misread as
+signal and a 0 reads as 1. The defence is borrowed from coding theory. Barcodes are
+separated by a minimum **Hamming distance**: at HD ≥ 2 an error can be detected, and at
+HD ≥ 3 or more it can also be corrected [@merfish_subcellular_2019]. MERFISH conventionally
+uses HD 4 with **Hamming weight 4** — every barcode contains exactly four 1s
+[@merfish_plus_2025].
+
+That fixed weight is the part with consequences for your gene list. The weight is held
+constant so that every gene is detected in the same number of rounds and therefore has
+comparable sensitivity [@merfish_codebook_2025]. Weight four is chosen as high enough to
+encode many genes without inflating molecular density [@merfish_codebook_2025]. So the
+codebook is not a free labelling scheme — it is a combinatorial object with a capacity, and
+generating an optimal one is, for most experimental parameters, **an unsolved mathematical
+problem** [@merfish_codebook_2025].
+
+Scale is achievable within it: a 69-bit HD4 HW4 code imaged roughly 10,000 genes over 23
+rounds with three colours [@merfish_subcellular_2019], and a 48-bit HW4 codebook carried an
+1,835-gene panel with about 75 adaptor probes pooled per round [@merfish_plus_2025].
+
+### Blank barcodes are not spare capacity
+
+Unused codewords are deliberately left unassigned. In the whole-mouse-brain MERFISH atlas,
+a codebook included **116 blank barcodes** carrying no gene, specifically to measure the
+false-positive rate [@mouse_brain_atlas_2023]. Any signal decoding to a blank is by
+construction a false detection.
+
+This gives you a measured, per-experiment error rate rather than an assumed one — the same
+logic as the negative probes in lesson 9, and the reason that lesson exists.
+
+It also gives an operational filter. In one MERFISH study, barcodes were binned in a 3D
+histogram of detection parameters and, for each bin, the ratio of gene barcodes to blank
+barcodes computed; bins with the worst ratio were discarded until a **5% misidentification
+rate** was reached [@merfish_plus_2025]. That is a threshold derived from the data, not
+copied from a tutorial.
+
+There is a trade worth knowing about. In that same atlas, a later 1,147-gene panel assigned
+its 25 additional genes barcodes drawn from the blank set [@mouse_brain_atlas_2023]. Blanks
+are capacity you chose to spend on error measurement instead of genes — spending them buys
+genes and costs you the ability to quantify your own false-positive rate.
+
+Reported MERFISH error rates give a sense of the scale involved: roughly 10% false negative
+and 4% false positive [@bioimaging_review_2023].
+
+### Optical crowding, which decides what you cannot include
+
+The ceiling on panel size is physical. Transcripts are point sources in a
+diffraction-limited image, and as density rises they overlap and become undecodable. Two
+established mitigations shape gene selection directly:
+
+Highly expressed genes are pulled out of the combinatorial scheme and imaged separately by
+single-molecule FISH, one colour and one round each — this was done in the first MERFISH
+study, and it becomes laborious as the number of such genes grows
+[@pachter_current_techs]. And when designing probes, the standing advice is to **avoid
+housekeeping genes, histones and very highly expressed genes** [@bioimaging_review_2023].
+
+So the answer to "why isn't my favourite gene on the panel" is often that it is too
+abundant, not too unimportant. That is a different conversation to have with your panel
+designer.
+
+### What this costs you, and how to find out before ordering
+
+A cell type defined by a gene that is not on the panel does not vanish. It is assigned to
+its nearest on-panel neighbour, confidently, and your annotation looks complete.
+
+The check is cheap and you can run it today: take a reference atlas of your tissue, subset
+it to your candidate panel, and re-cluster. The types that stop being separable are the
+types your experiment will not be able to see. Do this before the order, not after the run.
+
+**The assumption that breaks first.** That absence of a gene from the panel is the same
+thing as absence of expression.
+
+## Runnable notebook
+
+Take a reference atlas, subset to a candidate panel, and re-cluster to see which cell types
+survive.
+
+Data tier: **Fetched public**
+
+::: {.callout-warning}
+**Not yet executed.** No output shown and nothing cached.
+:::
+
+```{python}
+#| label: panel-ablation
+import scanpy as sc
+import numpy as np
+from sklearn.metrics import adjusted_rand_score
+
+ref = sc.read_h5ad("data/cache/reference_atlas.h5ad")   # has ref.obs["cell_type"]
+panel = [g for g in open("data/panel_draft.txt").read().split()]
+
+sub = ref[:, ref.var_names.isin(panel)].copy()
+sc.pp.pca(sub); sc.pp.neighbors(sub); sc.tl.leiden(sub, key_added="panel_clusters")
+
+# Which reference types are still separable using only the panel?
+lost = []
+for ct in ref.obs["cell_type"].cat.categories:
+    mask = ref.obs["cell_type"] == ct
+    dominant = sub.obs.loc[mask, "panel_clusters"].value_counts(normalize=True)
+    # a type is "lost" if its cells are absorbed into a cluster dominated by another type
+    if dominant.iloc[0] < 0.5:
+        lost.append(ct)
+
+print(f"ARI against reference labels: {adjusted_rand_score(ref.obs['cell_type'], sub.obs['panel_clusters']):.3f}")
+print(f"types no longer separable ({len(lost)}):", lost)
+```
+
+```{python}
+#| label: assert-panel
+# The lesson claims a panel loses cell types. Assert that it does, on a panel
+# small enough that it must — otherwise the notebook demonstrates nothing.
+
+assert len(lost) > 0, (
+    "no cell types lost: either the panel is unusually good, or the ablation is "
+    "not actually subsetting the genes — check panel membership before believing this"
+)
+
+# Sabotage check: pass the FULL gene list as the panel and confirm this assert FAILS.
+
+# Blank-barcode arithmetic: capacity spent on error measurement is capacity not
+# spent on genes, and the codebook must balance.
+assert n_genes + n_blanks <= codebook_capacity, (
+    f"{n_genes} genes plus {n_blanks} blanks exceeds capacity {codebook_capacity}"
+)
+assert n_blanks > 0, (
+    "a codebook with no blank barcodes cannot measure its own false-positive rate"
+)
+```
+
+## Rosetta panel
+
+The same atlas subsetting and re-clustering in R. Worth having in both languages, because
+panel design usually happens before anyone has decided which ecosystem the analysis will
+live in.
+
+```r
+library(Seurat)
+
+ref   <- readRDS("data/cache/reference_atlas.rds")
+panel <- readLines("data/panel_draft.txt")
+
+sub <- subset(ref, features = intersect(panel, rownames(ref)))
+sub <- ScaleData(sub) |> RunPCA(npcs = 30) |> FindNeighbors(dims = 1:30) |> FindClusters()
+
+# Cross-tabulate reference labels against panel-only clusters:
+# rows that spread across several columns are types your panel cannot separate.
+table(ref$cell_type, sub$seurat_clusters)
+```
+
+## Failure mode
+
+**What it produces.** A cell type defined by an off-panel gene is silently merged with its
+nearest on-panel neighbour, and the annotation looks complete. Nothing is missing from the
+output — a label is assigned to every cell, the clusters are clean, and the type you cannot
+see simply never appears as a category anyone thinks to look for.
+
+**The diagnostic that catches it.** Subset a reference atlas to your candidate panel and
+re-cluster. The types that disappear are the types your experiment will not be able to see.
+This is one of the few diagnostics on this site that runs entirely *before* the experiment,
+which makes it the cheapest of all.
+
+## Self-check
+
+### Question 1
+
+Which reference cell types collapse when you subset to your panel?
+
+::: {.callout-note collapse="true"}
+## Answer
+
+Run it and find out — that is the whole point, and it takes an afternoon against an
+afternoon's worth of irreversible commitment.
+
+Expect the losses to be concentrated in closely related subtypes distinguished by one or two
+genes, and in rare populations whose defining markers were not prioritised. If a type you
+intend to study is in that list, the panel is wrong and it is still cheap to fix.
+:::
+
+### Question 2
+
+What is a blank codeword for, and how many did your design include?
+
+::: {.callout-note collapse="true"}
+## Answer
+
+Blanks are valid codewords deliberately assigned to no gene, so that any signal decoding to
+one is a measured false positive. The whole-mouse-brain atlas carried 116 of them
+[@mouse_brain_atlas_2023].
+
+They are also spendable: that atlas's later panel assigned its 25 extra genes barcodes taken
+from the blank set [@mouse_brain_atlas_2023]. If your design has few or no blanks, you have
+bought genes with your ability to measure your own error rate — which may be the right
+trade, but should be a decision rather than an accident.
+:::
+
+### Question 3
+
+Your favourite marker was excluded. Why might that be a technical decision rather than a
+scientific one?
+
+::: {.callout-note collapse="true"}
+## Answer
+
+Because it is too abundant. Optical crowding limits how many point sources can be resolved
+in one image, and standing probe-design advice is to avoid housekeeping genes, histones and
+very highly expressed genes [@bioimaging_review_2023].
+
+Highly expressed genes are often measured separately by single-molecule FISH instead, one
+colour and one round each [@pachter_current_techs] — so the answer may be that your gene is
+being measured differently rather than not at all. Ask which.
+:::
+
+## Going further
+
+What each platform physically measures is lesson 5. The negative and blank probes that
+survive into your data as a measurable noise floor are lesson 9 — the same idea as blank
+codewords, one step later in the pipeline.
+
+Deliberately omitted: how to construct a codebook. Optimal generation is an open
+mathematical problem [@merfish_codebook_2025], and in practice the codebook comes with the
+platform. What you control is the gene list.
+
+### Sources
+
+::: {.callout-note}
+**Citation status: partial.** DOIs and PMC identifiers read from publisher records on
+2026-09-01; author lists and page numbers still incomplete in `references.bib`. The
+MERFISH-specific numbers — HW4, HD4, 116 blanks, the 5% misidentification threshold — are
+from particular studies and are illustrative of practice rather than universal
+specifications. Commercial platforms use their own codebooks and do not always publish them.
+:::

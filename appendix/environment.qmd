@@ -1,0 +1,36 @@
+---
+title: "Environment and versions"
+---
+
+## Pinned versions {#sec-environment}
+
+An unpinned tutorial rots within months, so versions are stated here on the site and not
+only in a lock file — a reader cannot open your lock file.
+
+Dependencies are resolved and pinned by `uv`, with `uv.lock` committed to the repository.
+That lock records exact versions and hashes for every platform the site is built on, so a
+reader who runs `uv sync --frozen` gets the same resolution this page was generated from.
+
+```{python}
+#| label: versions
+#| echo: false
+#| output: asis
+import sys
+sys.path.insert(0, "..")
+from scripts.versions import table
+print(f"Python {sys.version.split()[0]}\n")
+print(table())
+```
+
+## What is not in the lock file
+
+`uv` manages Python packages from PyPI. Two things sit outside it and are installed
+separately:
+
+- **R and its packages**, used by the Rosetta panel in every lesson. Managed with `renv`.
+- **Standalone binaries.** Any segmentation program that ships as its own executable
+  rather than a Python package is installed outside the lock, and the lesson using it
+  states the version it was run against.
+
+Neither is a reason to reach for a heavier package manager, but both are reasons to say
+plainly what is and is not reproducible from one command.

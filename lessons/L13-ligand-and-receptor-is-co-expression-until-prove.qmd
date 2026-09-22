@@ -1,0 +1,101 @@
+---
+title: "Ligand and receptor is co-expression until proven otherwise"
+subtitle: "Lesson 13 — Asking spatial questions"
+runtime: "20 min"
+peak-memory: "8 GB"
+data-tier: "Fetched public"
+builds: "Choose a valid null, Spot a silent failure"
+status: draft
+citations-verified: false
+---
+
+## The decision this serves
+
+A ranked interaction table has your favourite pair at the top. Decide what would make you believe it is signalling rather than abundance.
+
+::: {.callout-important}
+**Scale.** Runs in 20 min, peak memory 8 GB.
+Watch **database choice, which changes the ranking** — that is what stops being safe on a full section.
+:::
+
+## Concept
+
+How interaction scores are computed, and the inferential gap between a score and a claim about communication.
+
+**The assumption that breaks first.** That the score is independent of how highly the two genes are expressed.
+
+## Runnable notebook
+
+Score interactions, then test the top hit against a spatially aware null
+
+Data tier: **Fetched public**
+
+```{python}
+#| label: setup
+# TODO
+```
+
+```{python}
+#| label: assert-truth
+# Score rank correlates with mean expression on shuffled data, demonstrating the abundance confound directly
+# Sabotage the code this guards and confirm the assert FAILS before you commit.
+```
+
+## Rosetta panel
+
+An R interaction-scoring route on the same data, with the two rankings compared
+
+```r
+# TODO
+```
+
+## Failure mode
+
+**What it produces.** A ranked interaction table is read as a signalling network when the ranking largely reflects expression abundance.
+
+**The diagnostic that catches it.** Rerun with cell labels shuffled within the tissue; the abundance-driven pairs survive.
+
+## Self-check
+
+### Question 1
+
+What null did the score use?
+
+::: {.callout-note collapse="true"}
+## Answer
+
+TODO
+:::
+
+### Question 2
+
+Does the pair survive a permutation?
+
+::: {.callout-note collapse="true"}
+## Answer
+
+TODO
+:::
+
+### Question 3
+
+What experiment would falsify it?
+
+::: {.callout-note collapse="true"}
+## Answer
+
+TODO
+:::
+
+## Going further
+
+No benchmarking of methods against each other.
+
+### Sources
+
+::: {.callout-warning}
+**Citations not yet verified.** Verify against PubMed — title, journal, year, volume,
+pages, DOI — then set `citations-verified: true`.
+:::
+
+TODO

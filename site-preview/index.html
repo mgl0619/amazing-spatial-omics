@@ -1,0 +1,1285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spatial Omics, Worked Through</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ground:#E7EAE3; --panel:#F4F6F0; --panel-2:#DDE2D8;
+  --ink:#16222A; --ink-soft:#4A5A60; --ink-faint:#7C8A8C;
+  --rule:#C3CBBE; --rule-firm:#9AA795;
+  --teal:#1D5A57; --teal-soft:#CBDCD6;
+  --violet:#5B4F86; --violet-soft:#DAD5E8;
+  --flag:#8E2F2A; --flag-soft:#F0DED9; --flag-edge:#C98878;
+  --code-bg:#EDEFE8;
+  --focus:#1D5A57;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#10181C; --panel:#18232A; --panel-2:#213038;
+    --ink:#E5EAE4; --ink-soft:#A9B8B6; --ink-faint:#79898A;
+    --rule:#2C3B42; --rule-firm:#41545C;
+    --teal:#7FC4B8; --teal-soft:#1E3B3C;
+    --violet:#AFA2D8; --violet-soft:#2A2740;
+    --flag:#E29088; --flag-soft:#33201D; --flag-edge:#7A403A;
+    --code-bg:#141F25;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#10181C; --panel:#18232A; --panel-2:#213038;
+  --ink:#E5EAE4; --ink-soft:#A9B8B6; --ink-faint:#79898A;
+  --rule:#2C3B42; --rule-firm:#41545C;
+  --teal:#7FC4B8; --teal-soft:#1E3B3C;
+  --violet:#AFA2D8; --violet-soft:#2A2740;
+  --flag:#E29088; --flag-soft:#33201D; --flag-edge:#7A403A;
+  --code-bg:#141F25;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{margin:0;background:var(--ground);color:var(--ink);
+  font-family:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:16px;line-height:1.6}
+
+/* ---------- shell ---------- */
+.shell{display:grid;grid-template-columns:270px minmax(0,1fr);gap:0;min-height:100vh}
+.side{border-right:1px solid var(--rule);background:var(--panel);padding:26px 20px 60px;
+  position:sticky;top:0;height:100vh;overflow-y:auto}
+.brand{display:block;text-decoration:none;color:inherit;margin-bottom:6px}
+.brand b{font-family:"Newsreader",Georgia,serif;font-weight:500;font-size:1.22rem;
+  display:block;line-height:1.15;letter-spacing:-.01em}
+.brand span{font-size:.78rem;color:var(--ink-faint);display:block;margin-top:4px}
+.navgroup{margin-top:22px}
+.navgroup h4{font-family:"Newsreader",serif;font-weight:500;font-size:.92rem;color:var(--teal);
+  margin:0 0 6px;border-top:1px solid var(--rule-firm);padding-top:8px}
+.side a.nav{display:block;text-decoration:none;color:var(--ink-soft);font-size:.86rem;
+  padding:3px 0 3px 26px;text-indent:-26px;border-left:2px solid transparent;padding-left:10px}
+.side a.nav:hover{color:var(--teal)}
+.side a.nav.on{color:var(--ink);border-left-color:var(--teal);font-weight:500}
+.side a.nav i{font-style:normal;color:var(--ink-faint);font-variant-numeric:tabular-nums;
+  margin-right:8px;font-size:.78rem}
+.side a.nav.on i{color:var(--teal)}
+
+main{padding:44px 40px 120px;max-width:820px}
+
+/* ---------- type ---------- */
+h1{font-family:"Newsreader",Georgia,serif;font-weight:400;font-size:clamp(1.8rem,3.6vw,2.5rem);
+  line-height:1.1;letter-spacing:-.015em;margin:0 0 10px;max-width:20ch}
+h1 em{font-style:italic}
+h2{font-family:"Newsreader",Georgia,serif;font-weight:500;font-size:1.35rem;
+  margin:44px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--rule-firm)}
+h3{font-family:"Newsreader",serif;font-weight:500;font-size:1.08rem;margin:26px 0 8px}
+p{margin:0 0 14px;max-width:70ch}
+main ul,main ol{max-width:70ch;padding-left:22px}
+li{margin:5px 0}
+a{color:var(--teal)}
+.lede{font-family:"Newsreader",Georgia,serif;font-size:1.16rem;line-height:1.62;
+  color:var(--ink-soft);max-width:62ch;margin-bottom:22px}
+code{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.87em;
+  background:var(--code-bg);padding:1px 4px;border-radius:2px}
+pre{background:var(--code-bg);border:1px solid var(--rule);padding:14px 16px;
+  overflow-x:auto;font-size:.83rem;line-height:1.5;margin:0 0 14px}
+pre code{background:none;padding:0;font-size:1em}
+.tok-c{color:var(--ink-faint);font-style:italic}
+.tok-k{color:var(--violet)}
+.tok-s{color:var(--teal)}
+
+/* ---------- meta strip ---------- */
+.crumb{font-size:.78rem;color:var(--ink-faint);margin-bottom:10px}
+.metastrip{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 24px}
+.pill{font-size:.75rem;border:1px solid var(--rule-firm);color:var(--ink-soft);
+  padding:2px 9px;border-radius:12px;background:var(--panel)}
+.pill b{font-weight:500;color:var(--ink)}
+.pill.draft{border-color:var(--flag-edge);color:var(--flag);background:var(--flag-soft)}
+.pill.done{border-color:var(--teal);color:var(--teal);background:var(--teal-soft)}
+
+/* ---------- callouts ---------- */
+.call{border-left:3px solid var(--rule-firm);background:var(--panel);
+  padding:12px 16px;margin:0 0 18px}
+.call p:last-child{margin-bottom:0}
+.call .ct{font-size:.74rem;color:var(--ink-faint);display:block;margin-bottom:4px}
+.call.scale{border-left-color:var(--teal)}
+.call.scale .ct{color:var(--teal)}
+.call.warn{border-left-color:var(--flag-edge);background:var(--flag-soft)}
+.call.warn .ct{color:var(--flag)}
+.decision{font-family:"Newsreader",Georgia,serif;font-size:1.14rem;line-height:1.6;
+  font-style:italic;color:var(--teal);border-left:3px solid var(--teal);
+  padding:6px 0 6px 16px;margin:0 0 22px;max-width:60ch}
+
+/* ---------- slots ---------- */
+.slot{margin-top:40px}
+.slothead{display:flex;align-items:baseline;gap:10px;border-bottom:1px solid var(--rule-firm);
+  padding-bottom:6px;margin-bottom:14px}
+.slothead .n{font-family:"Newsreader",serif;font-size:.82rem;color:var(--ink-faint);
+  border:1px solid var(--rule-firm);border-radius:50%;width:1.55rem;height:1.55rem;
+  display:grid;place-items:center;flex:none}
+.slothead h2{margin:0;border:0;padding:0;font-size:1.3rem}
+.slot.fail .slothead .n{border-color:var(--flag-edge);color:var(--flag)}
+
+details{border:1px solid var(--rule);background:var(--panel);margin:0 0 10px;padding:0}
+details summary{cursor:pointer;padding:11px 15px;font-size:.94rem;list-style:none}
+details summary::-webkit-details-marker{display:none}
+details summary::before{content:"+";color:var(--teal);font-weight:600;margin-right:10px}
+details[open] summary::before{content:"−"}
+details[open] summary{border-bottom:1px solid var(--rule)}
+details .ans{padding:12px 15px 4px}
+details .ans p{margin-bottom:10px}
+
+figure{margin:0 0 20px;border:1px solid var(--rule);background:var(--panel);padding:16px}
+figure svg{display:block;width:100%;height:auto}
+figcaption{font-size:.81rem;color:var(--ink-soft);margin-top:12px;max-width:66ch}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-bottom:20px}
+.card{border:1px solid var(--rule);background:var(--panel);padding:15px 17px;text-decoration:none;
+  color:inherit;display:block}
+.card:hover{border-color:var(--teal)}
+.card b{font-family:"Newsreader",serif;font-weight:500;font-size:1.02rem;display:block;margin-bottom:4px}
+.card span{font-size:.83rem;color:var(--ink-soft)}
+
+table{border-collapse:collapse;width:100%;font-size:.86rem;margin-bottom:18px}
+th,td{text-align:left;padding:9px 11px;border-bottom:1px solid var(--rule);vertical-align:top}
+thead th{color:var(--ink-soft);font-weight:500;font-size:.78rem;border-bottom:1px solid var(--rule-firm)}
+.tablewrap{overflow-x:auto}
+
+.pathblock{border:1px solid var(--rule);background:var(--panel);padding:16px 18px;margin-bottom:14px}
+.pathblock h3{margin:0 0 2px}
+.pathblock .who{font-size:.83rem;color:var(--ink-faint);margin-bottom:8px}
+.pathblock .pnote{font-size:.88rem;color:var(--ink-soft);margin:0 0 12px;max-width:66ch}
+.pathblock .plen{font-size:.78rem;color:var(--ink-faint);margin-top:9px}
+.route{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.route a{display:inline-block;font-size:.82rem;text-decoration:none;border:1px solid var(--rule-firm);
+  padding:3px 9px;color:var(--ink-soft);background:var(--ground)}
+.route a:hover{border-color:var(--teal);color:var(--teal)}
+.route span{color:var(--ink-faint)}
+
+.res td:first-child{white-space:nowrap}
+.res tr.unchecked td{color:var(--ink-faint)}
+.res tr.unchecked code{background:none;color:var(--ink-faint)}
+.checked{font-variant-numeric:tabular-nums;color:var(--ink-faint);font-size:.8rem;white-space:nowrap}
+.pager{display:flex;justify-content:space-between;gap:14px;margin-top:56px;
+  border-top:1px solid var(--rule-firm);padding-top:14px;font-size:.88rem}
+.pager a{text-decoration:none}
+.pager a:hover{text-decoration:underline}
+
+.menubtn{display:none}
+@media (max-width:900px){
+  .shell{grid-template-columns:1fr}
+  .side{position:static;height:auto;border-right:0;border-bottom:1px solid var(--rule);
+    padding:18px 20px 24px}
+  .side .navwrap{display:none}
+  .side.open .navwrap{display:block}
+  .menubtn{display:inline-block;font:inherit;font-size:.85rem;margin-top:12px;
+    background:transparent;border:1px solid var(--rule-firm);border-radius:2px;
+    padding:6px 12px;cursor:pointer;color:var(--ink)}
+  main{padding:28px 20px 90px}
+}
+a:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+@media print{.side,.pager{display:none}main{max-width:none;padding:0}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <nav class="side" id="side">
+    <a class="brand" href="#/">
+      <b>Spatial Omics, Worked Through</b>
+      <span>Tutorials for people who have the data and are about to trust it</span>
+    </a>
+    <button class="menubtn" id="menubtn" aria-expanded="false">Contents</button>
+    <div class="navwrap" id="navwrap"></div>
+  </nav>
+  <main id="main"></main>
+</div>
+
+<script>
+"use strict";
+
+/* ------------------------------------------------------------------ *
+ * Site content. Lessons marked status:"written" are complete;
+ * status:"draft" carry their seven slots but not yet their prose.
+ * ------------------------------------------------------------------ */
+
+const TRACKS = [
+ {
+  "id": "K0",
+  "name": "How the data was made"
+ },
+ {
+  "id": "K1",
+  "name": "Before you trust anything"
+ },
+ {
+  "id": "K2",
+  "name": "From image to cells"
+ },
+ {
+  "id": "K3",
+  "name": "Asking spatial questions"
+ },
+ {
+  "id": "K4",
+  "name": "Working at real scale"
+ }
+];
+
+const PATHS = [
+ {
+  "name": "I am planning an experiment",
+  "who": "About to generate data; nothing has been cut yet",
+  "assumes": "No analysis background needed",
+  "note": "Read this before the tissue is cut. Every other route on this site assumes the design is already fixed, and most of what goes wrong later was decided here.",
+  "ls": [
+   1,
+   2,
+   3,
+   5,
+   8
+  ]
+ },
+ {
+  "name": "I just got my first run back",
+  "who": "Wet-lab scientist with data and no prior single-cell analysis",
+  "assumes": "You ran the experiment; no Python or R assumed",
+  "note": "Starts with what your own bench decisions did to the data, then the three checks that catch most early mistakes.",
+  "ls": [
+   2,
+   4,
+   5,
+   6,
+   7,
+   9,
+   16
+  ]
+ },
+ {
+  "name": "I do single-cell analysis and want to learn spatial",
+  "who": "Computational biologist fluent in scanpy or Seurat",
+  "assumes": "Clustering, annotation, integration and differential expression",
+  "note": "The longest route, and the one closest to a course. Roughly a third of your existing toolkit transfers unchanged, a third transfers with a twist that will bite you, and a third does not exist in dissociated data at all. The order below is built around that split: what is different, then what generated it, then the familiar steps that behave differently here, then the genuinely new statistics.",
+  "ls": [
+   5,
+   6,
+   2,
+   7,
+   9,
+   10,
+   11,
+   12,
+   13,
+   14,
+   15,
+   17
+  ]
+ },
+ {
+  "name": "I am reviewing someone else's spatial paper",
+  "who": "Referee or reader checking a published claim",
+  "assumes": "General familiarity with genomics papers",
+  "note": "Ordered as a checklist. Each lesson names a claim the data may not support and the figure that would settle it.",
+  "ls": [
+   2,
+   4,
+   7,
+   8,
+   12,
+   13,
+   14
+  ]
+ },
+ {
+  "name": "I am building a method",
+  "who": "Developer who needs the object model and the scale limits",
+  "assumes": "Comfortable with array APIs and chunked computation",
+  "note": "Skips the interpretation lessons and concentrates on representation, calibration and cost.",
+  "ls": [
+   6,
+   11,
+   12,
+   15,
+   17
+  ]
+ },
+ {
+  "name": "I have one afternoon",
+  "who": "Anyone about to trust a result and short of time",
+  "assumes": "Nothing",
+  "note": "The three failures that account for most of what goes wrong: coordinates that do not line up, segmentation nobody looked at, and a test that assumed independent samples.",
+  "ls": [
+   6,
+   7,
+   12
+  ]
+ }
+];
+
+const TIERS = [
+ {
+  "name": "Committed toy",
+  "size": "under 10 MB",
+  "where": "in the repository",
+  "teaches": "Mechanics: the object model, the API, the plot call",
+  "rule": "Small enough that lesson one needs no download."
+ },
+ {
+  "name": "Fetched public",
+  "size": "0.1 to 10 GB",
+  "where": "fetch script pinned to an accession, cached locally",
+  "teaches": "The real analysis on real tissue, at real scale",
+  "rule": "Never committed. Checksum, provenance and licence recorded per dataset. No patient data, and nothing re-identifiable from tissue morphology."
+ },
+ {
+  "name": "Simulated",
+  "size": "tiny",
+  "where": "generator script in the repository",
+  "teaches": "Ground truth — the only tier where the right answer is known",
+  "rule": "The most valuable tier and the one most often skipped. It is the only place a reader can measure how far their answer landed from the truth."
+ }
+];
+
+const LESSONS = [
+ {
+  "n": 1,
+  "track": "K0",
+  "status": "draft",
+  "title": "Designing the experiment before there is data",
+  "decision": "Your PI has budget for four sections and asks how to spend them. Decide now, because nothing later on this site can rescue a confounded design.",
+  "concept": "Allocation, replication and blocking for tissue experiments: what counts as a replicate, and how condition gets accidentally welded to section.",
+  "breaks": "That a correction step later can separate two variables you assigned together.",
+  "tier": "Simulated",
+  "notebook": "Simulate three allocations of four sections across two conditions and show which questions each can answer",
+  "asserts": "The design matrix for the confounded allocation is singular, and the code says so rather than proceeding",
+  "rosetta": "Design is language-independent. The same model matrix in R is equally singular, which is the point.",
+  "runtime": "5 min",
+  "memory": "under 1 GB",
+  "unsafe": "pooling sections as replicates when they came from one donor",
+  "failure": "One section per condition, so treatment and section are the same variable. Every downstream difference is real and uninterpretable, and no integration method can separate them.",
+  "diagnostic": "Write the design matrix before the tissue is cut. If condition and section are collinear, the experiment cannot answer the question, and that is cheap to learn now.",
+  "checks": [
+   "What is a replicate in your design — a section, a block, or a donor?",
+   "If you dropped your batch correction entirely, what would remain of your effect?",
+   "Which comparison does your allocation make impossible?"
+  ],
+  "further": "Power calculation for spatial designs is genuinely unsettled and deliberately not covered.",
+  "caps": [
+   "Name the regime"
+  ]
+ },
+ {
+  "n": 2,
+  "track": "K0",
+  "status": "written",
+  "title": "From block to matrix: the steps that constrain your analysis",
+  "decision": "You inherited a dataset and a one-line methods section. Decide which of the patterns you are looking at are analysis artifacts, before you attribute any of them to biology.",
+  "breaks": "That the matrix you were handed is a measurement rather than the output of a dozen decisions nobody wrote down.",
+  "tier": "Committed toy",
+  "notebook": "Read the run metadata of a toy dataset and reconstruct what was done: chemistry, section thickness, panel, segmentation method, software versions",
+  "asserts": "Every field the lesson claims to reconstruct is present in the metadata; a missing field raises rather than defaulting",
+  "rosetta": "Reading the same run metadata in R, since the fields live in the vendor output rather than in either ecosystem's object model",
+  "runtime": "3 min",
+  "memory": "under 1 GB",
+  "unsafe": "comparing counts across sections cut at different thicknesses",
+  "failure": "Two sections were cut at different thicknesses. Cells in the thicker section capture more transcripts, cluster separately, and read as a distinct high-expression state.",
+  "diagnostic": "Plot total counts per cell by section against the recorded thickness before interpreting any count difference. If thickness explains it, you have found a knife setting, not a cell state.",
+  "checks": [
+   "Which of the six pipeline steps does your methods section actually record?",
+   "Your two conditions were processed on different days. What else differs?",
+   "A cluster appears in one section and not the other. What do you check first?"
+  ],
+  "further": "Bench execution — buffers, incubation times, instrument settings — belongs to the vendor protocol and changes too fast to teach here.",
+  "caps": [
+   "Name the regime",
+   "Spot a silent failure"
+  ],
+  "fig": "\n<svg viewBox=\"0 0 720 340\" role=\"img\" aria-label=\"The bench pipeline from tissue block to count matrix, with the analysis artifact each step can introduce shown beneath it.\">\n <g font-family=\"IBM Plex Sans\">\n  <text x=\"0\" y=\"14\" font-size=\"12\" fill=\"var(--ink-faint)\">What happened before you opened the file</text>\n\n  <g fill=\"var(--panel-2)\" stroke=\"var(--rule-firm)\">\n    <rect x=\"0\"   y=\"30\" width=\"104\" height=\"42\"/>\n    <rect x=\"124\" y=\"30\" width=\"104\" height=\"42\"/>\n    <rect x=\"248\" y=\"30\" width=\"104\" height=\"42\"/>\n    <rect x=\"372\" y=\"30\" width=\"104\" height=\"42\"/>\n    <rect x=\"496\" y=\"30\" width=\"104\" height=\"42\"/>\n    <rect x=\"620\" y=\"30\" width=\"100\" height=\"42\"/>\n  </g>\n  <g font-size=\"11.5\" fill=\"var(--ink)\" text-anchor=\"middle\">\n    <text x=\"52\"  y=\"47\">Collection</text><text x=\"52\"  y=\"62\">and fixation</text>\n    <text x=\"176\" y=\"47\">Embedding</text><text x=\"176\" y=\"62\">and sectioning</text>\n    <text x=\"300\" y=\"47\">Permeabilise,</text><text x=\"300\" y=\"62\">probe or capture</text>\n    <text x=\"424\" y=\"47\">Imaging cycles</text><text x=\"424\" y=\"62\">or sequencing</text>\n    <text x=\"548\" y=\"47\">Decoding and</text><text x=\"548\" y=\"62\">registration</text>\n    <text x=\"670\" y=\"47\">Segmentation</text><text x=\"670\" y=\"62\">to a matrix</text>\n  </g>\n  <g stroke=\"var(--rule-firm)\" stroke-width=\"1.5\" fill=\"none\">\n    <path d=\"M104 51 L124 51\"/><path d=\"M228 51 L248 51\"/><path d=\"M352 51 L372 51\"/>\n    <path d=\"M476 51 L496 51\"/><path d=\"M600 51 L620 51\"/>\n  </g>\n\n  <g stroke=\"var(--flag-edge)\" stroke-width=\"1.5\" stroke-dasharray=\"3 3\">\n    <path d=\"M52 72 L52 104\"/><path d=\"M176 72 L176 104\"/><path d=\"M300 72 L300 104\"/>\n    <path d=\"M424 72 L424 104\"/><path d=\"M548 72 L548 104\"/><path d=\"M670 72 L670 104\"/>\n  </g>\n\n  <g fill=\"var(--flag-soft)\" stroke=\"var(--flag-edge)\">\n    <rect x=\"0\"   y=\"104\" width=\"104\" height=\"72\"/>\n    <rect x=\"124\" y=\"104\" width=\"104\" height=\"72\"/>\n    <rect x=\"248\" y=\"104\" width=\"104\" height=\"72\"/>\n    <rect x=\"372\" y=\"104\" width=\"104\" height=\"72\"/>\n    <rect x=\"496\" y=\"104\" width=\"104\" height=\"72\"/>\n    <rect x=\"620\" y=\"104\" width=\"100\" height=\"72\"/>\n  </g>\n  <g font-size=\"10.5\" fill=\"var(--ink)\" text-anchor=\"middle\">\n    <text x=\"52\"  y=\"122\">Degraded RNA</text><text x=\"52\"  y=\"136\">reads as low</text>\n    <text x=\"52\"  y=\"150\">expression,</text><text x=\"52\"  y=\"164\">not low quality</text>\n\n    <text x=\"176\" y=\"122\">Thickness sets</text><text x=\"176\" y=\"136\">counts per cell.</text>\n    <text x=\"176\" y=\"150\">Two thicknesses</text><text x=\"176\" y=\"164\">= two \"states\"</text>\n\n    <text x=\"300\" y=\"122\">Efficiency varies</text><text x=\"300\" y=\"136\">by region; looks</text>\n    <text x=\"300\" y=\"150\">like a gradient</text><text x=\"300\" y=\"164\">of expression</text>\n\n    <text x=\"424\" y=\"122\">Depth differs</text><text x=\"424\" y=\"136\">per run. Batch</text>\n    <text x=\"424\" y=\"150\">and condition</text><text x=\"424\" y=\"164\">now overlap</text>\n\n    <text x=\"548\" y=\"122\">Misregistration</text><text x=\"548\" y=\"136\">moves cells to</text>\n    <text x=\"548\" y=\"150\">the wrong</text><text x=\"548\" y=\"164\">morphology</text>\n\n    <text x=\"670\" y=\"122\">Merged cells</text><text x=\"670\" y=\"136\">become a</text>\n    <text x=\"670\" y=\"150\">\"transitional\"</text><text x=\"670\" y=\"164\">cluster</text>\n  </g>\n\n  <text x=\"0\" y=\"204\" font-size=\"12\" fill=\"var(--flag)\">Each box below is an analysis result you can produce without any error being raised.</text>\n  <text x=\"0\" y=\"228\" font-size=\"11.5\" fill=\"var(--ink-soft)\">The methods section you were given probably records two or three of these six decisions.</text>\n  <text x=\"0\" y=\"246\" font-size=\"11.5\" fill=\"var(--ink-soft)\">Everything downstream — clustering, annotation, differential expression, interaction</text>\n  <text x=\"0\" y=\"264\" font-size=\"11.5\" fill=\"var(--ink-soft)\">inference — inherits all of them, and none of them are visible in the count matrix.</text>\n </g>\n</svg>",
+  "figcap": "Six decisions sit between the tissue and your count matrix. Each one can produce a pattern that survives clustering, annotation and differential expression without ever raising an error.",
+  "conceptHTML": "\n<p>A count matrix looks like a measurement. It is not. It is the output of a chain of\nphysical and computational decisions, most of which were made by someone else, several of\nwhich were not recorded, and all of which are still present in the numbers.</p>\n\n<p>This lesson is not a protocol. You will not learn incubation times here, and you should\nnot want to — those live in the vendor documentation and change between chemistry\nversions. What you need is different: a working model of which bench decision produces\nwhich analysis artifact, so that when you see a pattern you can ask whether a knife or a\nbuffer could have made it.</p>\n\n<h3>The six steps, and what each one leaves behind</h3>\n\n<p><b>Collection and fixation.</b> Time between excision and fixation determines RNA\nintegrity, and fresh-frozen and FFPE material behave differently enough that they are\neffectively different assays. Degraded RNA does not announce itself as degraded — it\nappears as low expression, and low expression appears as a quiescent or low-activity cell\nstate. A region that took longer to fix looks metabolically quieter.</p>\n\n<p><b>Embedding and sectioning.</b> Section thickness sets how much of each cell is in the\nplane, which sets counts per cell. A ten-micron section and a five-micron section from the\nsame block yield systematically different totals. If those two sections are your two\nconditions, you have measured the cryostat.</p>\n\n<p><b>Permeabilisation, probe hybridisation or capture.</b> Efficiency is not uniform\nacross a section. Dense tissue, fibrotic regions and areas near a fold permeabilise\ndifferently, so capture efficiency varies spatially — and spatially varying efficiency is\nindistinguishable, in the matrix alone, from a spatially varying expression gradient. This\nis one reason lesson 12's warning about spatial statistics bites so hard: the artifact has\nexactly the structure the analysis is looking for.</p>\n\n<p><b>Imaging cycles or sequencing.</b> Sequencing depth differs between runs; imaging runs\ndiffer in cycle count, focus quality and photobleaching across cycles. Depth differences\nare the ordinary batch effect everyone knows about. The problem is not that they exist, it\nis that they are usually aligned with something you care about, because samples processed\ntogether tend to share a condition.</p>\n\n<p><b>Decoding and registration.</b> Transcripts are assigned to positions, and positions\nare registered against the morphology image. Misregistration moves cells into the wrong\nanatomical compartment while leaving their expression untouched, producing cells that look\nlike one type sitting confidently in the wrong place. Lesson 6 is entirely about catching\nthis.</p>\n\n<p><b>Segmentation.</b> Boundaries are drawn, and every count is assigned to a cell.\nLesson 7 covers what goes wrong here in detail; for now the point is only that this is a\ncomputational decision, usually made with default parameters, and that it is the last step\nbefore the object you were handed.</p>\n\n<h3>What the methods section will tell you</h3>\n\n<p>In practice, two or three of those six. Chemistry version and platform are almost always\nrecorded. Section thickness sometimes is. Time to fixation, permeabilisation conditions,\nand the segmentation parameters usually are not, and the software versions almost never\nare — which is why lesson 17 exists.</p>\n\n<p>So the first analysis you run on an inherited dataset is not clustering. It is reading\nthe run metadata and writing down, explicitly, which of these decisions you know and which\nyou are assuming. The ones you are assuming are your list of alternative explanations, and\nyou will need it the first time a cluster appears in one section and not another.</p>\n\n<p>The assumption that breaks first is the quiet one: that the matrix is data. It is a\nresult, and it has a methods section of its own.</p>",
+  "codePython": "<span class=\"tok-c\"># Not yet executed. Run it, read the output, then commit the freeze cache.</span>\n<span class=\"tok-k\">import</span> spatialdata <span class=\"tok-k\">as</span> sd\n\nsdata = sd.read_zarr(<span class=\"tok-s\">\"data/cache/toy_section.zarr\"</span>)\n\n<span class=\"tok-c\"># Everything the run recorded about how it was produced.</span>\n<span class=\"tok-k\">for</span> key, value <span class=\"tok-k\">in</span> sdata.attrs.items():\n    <span class=\"tok-k\">print</span>(<span class=\"tok-s\">f\"{key:&lt;28} {value}\"</span>)\n\n<span class=\"tok-c\"># The six decisions. Anything that comes back None is not a default —</span>\n<span class=\"tok-c\"># it is an alternative explanation you will need later.</span>\nDECISIONS = [\n    <span class=\"tok-s\">\"fixation\"</span>, <span class=\"tok-s\">\"section_thickness_um\"</span>, <span class=\"tok-s\">\"permeabilisation\"</span>,\n    <span class=\"tok-s\">\"chemistry_version\"</span>, <span class=\"tok-s\">\"registration_method\"</span>, <span class=\"tok-s\">\"segmentation_method\"</span>,\n]\nknown = {k: sdata.attrs.get(k) <span class=\"tok-k\">for</span> k <span class=\"tok-k\">in</span> DECISIONS}\nunknown = [k <span class=\"tok-k\">for</span> k, v <span class=\"tok-k\">in</span> known.items() <span class=\"tok-k\">if</span> v <span class=\"tok-k\">is</span> <span class=\"tok-k\">None</span>]\n<span class=\"tok-k\">print</span>(<span class=\"tok-s\">\"\\nnot recorded:\"</span>, unknown)",
+  "codeAssert": "<span class=\"tok-c\"># Delete a metadata field on purpose and confirm this fails rather than</span>\n<span class=\"tok-c\"># quietly filling in a default. Silent defaults are how the six decisions</span>\n<span class=\"tok-c\"># disappear from the record.</span>\n\n<span class=\"tok-k\">assert</span> known[<span class=\"tok-s\">\"section_thickness_um\"</span>] <span class=\"tok-k\">is not</span> <span class=\"tok-k\">None</span>, (\n    <span class=\"tok-s\">\"thickness unrecorded: counts per cell are not comparable across sections\"</span>\n)\n\n<span class=\"tok-c\"># If more than one section is present, thickness must match before</span>\n<span class=\"tok-c\"># any count-based comparison is meaningful.</span>\nthicknesses = {s: m[<span class=\"tok-s\">\"section_thickness_um\"</span>] <span class=\"tok-k\">for</span> s, m <span class=\"tok-k\">in</span> per_section.items()}\n<span class=\"tok-k\">assert</span> len(set(thicknesses.values())) == <span class=\"tok-s\">1</span>, (\n    <span class=\"tok-s\">f\"sections cut at different thicknesses: {thicknesses}\"</span>\n)",
+  "codeR": "<span class=\"tok-c\"># The run metadata lives in the vendor output, not in either ecosystem's</span>\n<span class=\"tok-c\"># object model, so both languages read the same files.</span>\nlibrary(jsonlite)\n\nmeta <- fromJSON(<span class=\"tok-s\">\"data/cache/toy_section/experiment.xenium\"</span>)\nstr(meta, max.level = <span class=\"tok-s\">1</span>)\n\n<span class=\"tok-c\"># Same six decisions, same question: which are absent?</span>\ndecisions <- c(<span class=\"tok-s\">\"fixation\"</span>, <span class=\"tok-s\">\"section_thickness_um\"</span>, <span class=\"tok-s\">\"permeabilisation\"</span>,\n               <span class=\"tok-s\">\"chemistry_version\"</span>, <span class=\"tok-s\">\"registration_method\"</span>, <span class=\"tok-s\">\"segmentation_method\"</span>)\nsetdiff(decisions, names(meta))",
+  "answers": [
+   "Usually platform and chemistry version, sometimes section thickness, and rarely anything else. Time to fixation, permeabilisation conditions and segmentation parameters are the three most consequential omissions. Write down which you know; the remainder is your list of alternative explanations, and you will want it in writing before you are attached to a result.",
+   "Reagent lot, operator, instrument calibration, ambient conditions, and time in storage before processing — none of which appear in the matrix. This is why lesson 14 insists that section is batch: processing day is a bundle of unrecorded variables, and if it lines up with your condition, no correction can separate them because there is nothing in the data that distinguishes them.",
+   "Total counts per cell in each section, plotted against recorded thickness and against the number of cells recovered. If the cluster is defined by high or low overall expression rather than by specific markers, you are probably looking at a capture or thickness difference. Check that before checking anything biological — it costs one plot and rules out the most common artifact."
+  ],
+  "sources": "Vendor chemistry documentation for the platforms used; published comparisons of fresh-frozen and FFPE performance. Requires verification against the published record before citation."
+ },
+ {
+  "n": 3,
+  "track": "K0",
+  "status": "draft",
+  "title": "Panel design and the codebook",
+  "decision": "You are choosing 300 genes for a targeted panel and your favourite marker did not make the draft. Decide what the panel can and cannot answer before it is ordered, because you cannot add a gene afterwards.",
+  "concept": "Targeted versus untargeted measurement; codebook construction and why blank codewords exist by design; optical crowding and dynamic range as limits on which genes can share a panel.",
+  "breaks": "That absence of a gene from the panel is the same thing as absence of expression.",
+  "tier": "Fetched public",
+  "notebook": "Take a reference atlas, subset it to a candidate panel, and re-cluster to see which cell types survive",
+  "asserts": "At least one reference cell type is unrecoverable from the subset panel, and the code names which",
+  "rosetta": "The same atlas subsetting and re-clustering in R, since panel design usually happens before anyone has picked an analysis language",
+  "runtime": "15 min",
+  "memory": "8 GB",
+  "unsafe": "panel size, as optical crowding rises with transcript density",
+  "failure": "A cell type defined by a gene that is not on the panel is silently merged with its nearest on-panel neighbour, and the annotation looks complete.",
+  "diagnostic": "Subset a reference atlas to your candidate panel and re-cluster it. The types that disappear are the types your experiment will not be able to see.",
+  "checks": [
+   "Which reference cell types collapse when you subset to your panel?",
+   "What is a blank codeword for, and how many did your design include?",
+   "Which of your conclusions would change if a gene were absent rather than unexpressed?"
+  ],
+  "further": "Untargeted platforms trade this problem for a sensitivity problem; the panel question does not disappear, it changes shape.",
+  "caps": [
+   "Name the regime",
+   "Spot a silent failure"
+  ]
+ },
+ {
+  "n": 4,
+  "track": "K1",
+  "status": "draft",
+  "title": "What spatial data is, and what it is not",
+  "decision": "A collaborator hands you a Xenium run and asks whether two markers co-localise. Before you answer, decide whether that question is answerable from coordinates at all.",
+  "concept": "What each family of assay measures, in what units, at what resolution, and the difference between a location and a neighbourhood.",
+  "breaks": "That plotted point size has anything to do with the distance scale of the biology.",
+  "tier": "Committed toy",
+  "notebook": "Load a toy section, plot it, read the object structure",
+  "asserts": "Point count matches the table row count; the extent in microns matches the reported section size",
+  "rosetta": "SpatialData object structure alongside the equivalent Seurat spatial object, field by field",
+  "runtime": "under 1 min",
+  "memory": "under 1 GB",
+  "unsafe": "nothing at this size",
+  "failure": "Two types are called co-localised from a plot whose marker size is larger than the distances involved.",
+  "diagnostic": "Replot with markers scaled to true microns and a scale bar; the apparent overlap disappears.",
+  "checks": [
+   "Which of these three claims does your assay license?",
+   "At what distance do two points stop being neighbours?",
+   "What would you have to add to answer the question you actually have?"
+  ],
+  "further": "Omits platform selection entirely.",
+  "caps": [
+   "Name the regime"
+  ]
+ },
+ {
+  "n": 5,
+  "track": "K1",
+  "status": "draft",
+  "title": "Platforms and resolution regimes",
+  "decision": "A reviewer asks which cells express your marker. You have Visium data. Decide whether that sentence is available to you before you write the rebuttal.",
+  "concept": "Capture area versus segmented cell; how sequencing-based and imaging-based platforms differ in what a single row of the table means.",
+  "breaks": "That a row of the matrix corresponds to one cell.",
+  "tier": "Committed toy",
+  "notebook": "The same tissue in three regimes, side by side",
+  "asserts": "Rows per unit area differ by the expected order of magnitude across regimes",
+  "rosetta": "Reading each regime into Seurat, and where the object model stops distinguishing them",
+  "runtime": "2 min",
+  "memory": "under 2 GB",
+  "unsafe": "nothing at this size",
+  "failure": "The sentence “this cell type expresses X” written from spot data, where the spot held several cells and the claim was never measurable.",
+  "diagnostic": "Count nuclei per spot from the paired image; the number is greater than one.",
+  "checks": [
+   "What is one row of your table?",
+   "Can you name a single cell in your data?",
+   "Which figure in your own field quietly makes this error?"
+  ],
+  "further": "Deconvolution is lesson 5.",
+  "caps": [
+   "Name the regime"
+  ]
+ },
+ {
+  "n": 6,
+  "track": "K1",
+  "status": "written",
+  "title": "Coordinate systems, and the flipped axis",
+  "decision": "Your tissue map looks anatomically right and your PI believes it. Decide whether the points and the image are actually in the same coordinate system before it goes in the grant.",
+  "breaks": "That the transformation is identity because the plot looks reasonable.",
+  "tier": "Committed toy",
+  "notebook": "Overlay points on the image, then break the transform on purpose and look again",
+  "asserts": "Transformed extent equals image extent within tolerance; a known landmark lands on itself",
+  "rosetta": "The same overlay in R, and the point at which the two ecosystems disagree about the origin",
+  "runtime": "2 min",
+  "memory": "under 2 GB",
+  "unsafe": "nothing at this size",
+  "failure": "A flipped y-axis produces a tissue map that is anatomically plausible and entirely mirrored. Nothing errors.",
+  "diagnostic": "Overlay on the image with an asymmetric landmark visible; the mirror is obvious only then.",
+  "checks": [
+   "Is your scale bar in microns or pixels?",
+   "Which element defines the extrinsic system?",
+   "What does the overlay look like if you skip the transform?"
+  ],
+  "further": "Registration across sections is lesson 11.",
+  "caps": [
+   "Verify alignment",
+   "Spot a silent failure"
+  ],
+  "fig": "\n<svg viewBox=\"0 0 720 260\" role=\"img\" aria-label=\"Three panels: the tissue image with an asymmetric landmark, points correctly overlaid, and points overlaid with a flipped y-axis producing a mirrored but plausible map.\">\n  <g font-family=\"IBM Plex Sans\">\n  <text x=\"0\" y=\"14\" font-size=\"12\" fill=\"var(--ink-faint)\">Image (intrinsic)</text>\n  <rect x=\"0\" y=\"24\" width=\"200\" height=\"180\" fill=\"var(--panel-2)\" stroke=\"var(--rule-firm)\"/>\n  <path d=\"M20 184 L100 44 L180 184 Z\" fill=\"var(--ink)\" fill-opacity=\"0.13\"/>\n  <circle cx=\"150\" cy=\"70\" r=\"12\" fill=\"var(--violet)\" fill-opacity=\"0.5\"/>\n  <text x=\"0\" y=\"222\" font-size=\"11\" fill=\"var(--ink-soft)\">Landmark sits upper-right</text>\n\n  <text x=\"260\" y=\"14\" font-size=\"12\" fill=\"var(--teal)\">Correct transform</text>\n  <rect x=\"260\" y=\"24\" width=\"200\" height=\"180\" fill=\"var(--panel-2)\" stroke=\"var(--teal)\"/>\n  <path d=\"M280 184 L360 44 L440 184 Z\" fill=\"var(--ink)\" fill-opacity=\"0.13\"/>\n  <circle cx=\"410\" cy=\"70\" r=\"12\" fill=\"var(--violet)\" fill-opacity=\"0.5\"/>\n  <g fill=\"var(--teal)\">\n    <circle cx=\"330\" cy=\"150\" r=\"3.4\"/><circle cx=\"352\" cy=\"128\" r=\"3.4\"/><circle cx=\"372\" cy=\"150\" r=\"3.4\"/>\n    <circle cx=\"360\" cy=\"96\" r=\"3.4\"/><circle cx=\"342\" cy=\"170\" r=\"3.4\"/><circle cx=\"390\" cy=\"172\" r=\"3.4\"/>\n    <circle cx=\"408\" cy=\"72\" r=\"3.4\"/><circle cx=\"414\" cy=\"66\" r=\"3.4\"/>\n  </g>\n  <text x=\"260\" y=\"222\" font-size=\"11\" fill=\"var(--ink-soft)\">Points land on the landmark</text>\n\n  <text x=\"520\" y=\"14\" font-size=\"12\" fill=\"var(--flag)\">Flipped y — nothing errors</text>\n  <rect x=\"520\" y=\"24\" width=\"200\" height=\"180\" fill=\"var(--panel-2)\" stroke=\"var(--flag-edge)\"/>\n  <path d=\"M540 184 L620 44 L700 184 Z\" fill=\"var(--ink)\" fill-opacity=\"0.13\"/>\n  <circle cx=\"670\" cy=\"70\" r=\"12\" fill=\"var(--violet)\" fill-opacity=\"0.5\"/>\n  <g fill=\"var(--flag)\">\n    <circle cx=\"590\" cy=\"78\" r=\"3.4\"/><circle cx=\"612\" cy=\"100\" r=\"3.4\"/><circle cx=\"632\" cy=\"78\" r=\"3.4\"/>\n    <circle cx=\"620\" cy=\"132\" r=\"3.4\"/><circle cx=\"602\" cy=\"58\" r=\"3.4\"/><circle cx=\"650\" cy=\"56\" r=\"3.4\"/>\n    <circle cx=\"668\" cy=\"156\" r=\"3.4\"/><circle cx=\"674\" cy=\"162\" r=\"3.4\"/>\n  </g>\n  <text x=\"520\" y=\"222\" font-size=\"11\" fill=\"var(--ink-soft)\">Still a plausible tissue. Landmark</text>\n  <text x=\"520\" y=\"238\" font-size=\"11\" fill=\"var(--ink-soft)\">is now bare.</text>\n  </g>\n</svg>",
+  "figcap": "A mirrored tissue is still a tissue. Symmetric structures hide the flip completely; only an asymmetric landmark exposes it, which is why the overlay must include one.",
+  "conceptHTML": "\n<p>A spatial dataset is not one thing with coordinates. It is several elements — an image,\na set of points, polygons for cell boundaries, a table of counts — each of which was\nproduced by a different piece of software with its own idea of where the origin is and\nwhat one unit means. The coordinates only agree because something made them agree.</p>\n\n<p>The distinction that matters is between an element's <b>intrinsic</b> coordinate system\nand the <b>extrinsic</b> one shared across elements. A microscope image is intrinsically\nindexed in pixels, starting at the top-left corner, with y increasing downward — an\ninheritance from raster graphics, not from biology. Transcript detections usually arrive\nin microns, sometimes relative to a different origin, occasionally with y increasing\nupward because whoever wrote the exporter thought in Cartesian terms. Neither is wrong.\nThey are simply different, and the transformation between them is a real object that\neither exists or does not.</p>\n\n<p>Frameworks like SpatialData make that transformation explicit precisely because getting\nit wrong is so easy and so quiet. When you register an element into a shared coordinate\nsystem, you are asserting a scale factor, possibly a rotation, and an origin. If you never\nmake that assertion, the elements are still plotted together — matplotlib will happily draw\npoints and an image on the same axes — but their alignment is now an accident of the\nnumbers happening to fall in a similar range.</p>\n\n<h3>The quantity, and its units</h3>\n\n<p>The thing to keep track of is the scale factor: microns per pixel, and its reciprocal.\nEvery imaging run has one, usually in the metadata. If your scale bar is drawn from an\nassumed value rather than the recorded one, every distance you report downstream — every\nneighbourhood radius in lesson 8, every interaction distance in lesson 10 — is wrong by\nthat ratio. A 20% error in microns per pixel is invisible in a plot and fatal in a\nneighbourhood analysis.</p>\n\n<p>Three failures account for most of what goes wrong, and none of them raise an\nexception:</p>\n\n<ul>\n<li><b>Pixels treated as microns.</b> The map looks right; the scale bar is a fiction; all\nyour distance thresholds are off by a constant factor you never notice because the plot\nis unitless to the eye.</li>\n<li><b>A flipped y-axis.</b> The tissue is mirrored. Anatomy is often roughly symmetric, so\nthis survives inspection. In a section with genuine left–right structure it will reverse\nyour conclusion.</li>\n<li><b>Image and table registered to different systems.</b> Each is internally consistent.\nOverlaid, they are offset by a translation nobody applied, and cells get assigned to the\nwrong morphological region.</li>\n</ul>\n\n<p>What makes these dangerous is not that they are subtle in principle. It is that the\noutput of each is a picture of a tissue, and tissue is exactly the kind of object where the\nhuman eye supplies plausibility for free. You look at a mirrored cortex and see a cortex.</p>\n\n<h3>The check that costs ten seconds</h3>\n\n<p>Overlay the points on the image and look at it, once, in every analysis. Not a scatter of\npoints on white — the points on top of the actual image, with an asymmetric landmark in the\nfield of view. A ventricle, a tumour margin, a folded edge, anything that is not\nsymmetric. If the transform is wrong, the points will sit somewhere the tissue is not, and\nyou will see it immediately.</p>\n\n<p>This is the cheapest diagnostic in the entire field and it is skipped constantly, usually\nbecause the analysis started from a provided cell-by-gene matrix where the image was never\nloaded at all. If you never load the image, you cannot make this check, and you have no\nindependent evidence that your coordinates mean anything.</p>",
+  "codePython": "<span class=\"tok-c\"># Not yet executed. Run it, read the output, then commit the freeze cache.</span>\n<span class=\"tok-k\">import</span> spatialdata <span class=\"tok-k\">as</span> sd\n<span class=\"tok-k\">import</span> spatialdata_plot  <span class=\"tok-c\"># registers the .pl accessor</span>\n\nsdata = sd.read_zarr(<span class=\"tok-s\">\"data/cache/toy_section.zarr\"</span>)\n\n<span class=\"tok-c\"># What coordinate systems exist, and which elements live in each?</span>\n<span class=\"tok-k\">print</span>(sdata.coordinate_systems)\n\n<span class=\"tok-c\"># The transformation is an object. If this is identity, ask why.</span>\n<span class=\"tok-k\">from</span> spatialdata.transformations <span class=\"tok-k\">import</span> get_transformation\n<span class=\"tok-k\">print</span>(get_transformation(sdata[<span class=\"tok-s\">\"transcripts\"</span>], <span class=\"tok-s\">\"global\"</span>))\n\n<span class=\"tok-c\"># The check: points on top of the image, with a scale bar.</span>\n(\n    sdata.pl.render_images(<span class=\"tok-s\">\"morphology\"</span>)\n         .pl.render_points(<span class=\"tok-s\">\"transcripts\"</span>, size=<span class=\"tok-s\">1</span>)\n         .pl.show(coordinate_systems=<span class=\"tok-s\">\"global\"</span>)\n)",
+  "codeAssert": "<span class=\"tok-c\"># Sabotage the transform above and confirm BOTH of these fail.</span>\n<span class=\"tok-k\">import</span> numpy <span class=\"tok-k\">as</span> np\n\npts = sdata[<span class=\"tok-s\">\"transcripts\"</span>].compute()\nimg_extent = sd.get_extent(sdata[<span class=\"tok-s\">\"morphology\"</span>], coordinate_system=<span class=\"tok-s\">\"global\"</span>)\npts_extent = sd.get_extent(sdata[<span class=\"tok-s\">\"transcripts\"</span>], coordinate_system=<span class=\"tok-s\">\"global\"</span>)\n\n<span class=\"tok-k\">assert</span> np.allclose(\n    [img_extent[<span class=\"tok-s\">\"x\"</span>], img_extent[<span class=\"tok-s\">\"y\"</span>]],\n    [pts_extent[<span class=\"tok-s\">\"x\"</span>], pts_extent[<span class=\"tok-s\">\"y\"</span>]],\n    rtol=<span class=\"tok-s\">0.05</span>,\n), <span class=\"tok-s\">\"points and image do not span the same region\"</span>\n\n<span class=\"tok-c\"># A landmark at a known micron position must land on itself.</span>\n<span class=\"tok-k\">assert</span> np.allclose(landmark_from_points, LANDMARK_TRUTH_UM, atol=<span class=\"tok-s\">5.0</span>)",
+  "codeR": "<span class=\"tok-c\"># The same overlay in Seurat. Note where the origin convention differs:</span>\n<span class=\"tok-c\"># Seurat's spatial coordinates follow the image row/column order, so a</span>\n<span class=\"tok-c\"># dataset that plots correctly in Python can appear flipped here.</span>\nlibrary(Seurat)\n\nobj <- LoadXenium(<span class=\"tok-s\">\"data/cache/toy_section/\"</span>)\nImageDimPlot(obj, fov = <span class=\"tok-s\">\"fov\"</span>, axes = TRUE)\n\n<span class=\"tok-c\"># Confirm against the same landmark before trusting anything downstream.</span>\nGetTissueCoordinates(obj)[1:5, ]",
+  "answers": [
+   "Check, do not assume. Read the microns-per-pixel value from the run metadata and confirm your plotted scale bar was drawn from it. If your bar is in pixels, every distance threshold downstream — neighbourhood radii, interaction distances — is scaled by an unknown constant.",
+   "Whichever element you registered the others into, and it should be a deliberate choice rather than whichever loaded first. In SpatialData that is the coordinate system named in the transformation; ask which element defines it and what the transformation to it actually is. If the answer is identity for everything, nobody registered anything.",
+   "Often, entirely reasonable — which is the problem. Points and image may span similar numeric ranges by coincidence, so the overlay looks plausible while being offset or mirrored. That is why the check requires an asymmetric landmark: with a symmetric field of view, skipping the transform and applying it correctly can produce indistinguishable pictures."
+  ],
+  "sources": "SpatialData framework paper; the OME-NGFF specification. Both need verifying against the published record before citation."
+ },
+ {
+  "n": 7,
+  "track": "K2",
+  "status": "draft",
+  "title": "Segmentation is upstream of everything",
+  "decision": "You have found a transitional cell state nobody has reported. Before writing it up, decide whether it is two neighbouring cells merged by the segmenter.",
+  "concept": "Masks and boundaries, and how over- and under-segmentation each propagate into the expression matrix.",
+  "breaks": "That segmentation error is random noise rather than a systematic source of intermediate profiles.",
+  "tier": "Simulated",
+  "notebook": "Simulated tissue with known boundaries; segment it two ways and measure the error against truth",
+  "asserts": "Recovered cell count within tolerance of truth; chimera rate computed and reported, not assumed",
+  "rosetta": "Reading the same masks into R and confirming the cell-by-gene matrix matches",
+  "runtime": "5 min",
+  "memory": "2 GB",
+  "unsafe": "expansion radius, once cell density rises",
+  "failure": "Under-segmentation creates chimeric profiles that cluster together and read as a beautiful, publishable intermediate state.",
+  "diagnostic": "Plot the candidate cluster back onto the masks over the image; its members sit on boundaries between two types.",
+  "checks": [
+   "Have you looked at masks over the image?",
+   "What is your chimera rate on simulated data?",
+   "Which cluster disappears under a different segmentation?"
+  ],
+  "further": "Starting from a provided cell-by-gene matrix skips this step, which is where most errors enter.",
+  "caps": [
+   "Interrogate segmentation",
+   "Spot a silent failure"
+  ]
+ },
+ {
+  "n": 8,
+  "track": "K2",
+  "status": "draft",
+  "title": "Deconvolution returns proportions, not cells",
+  "decision": "You want to publish a cell-type map from Visium. A referee will ask what a proportion means. Decide what you can claim before you write the figure legend.",
+  "concept": "Mixture models over capture areas; what a proportion is, and what it is not.",
+  "breaks": "That a dominant proportion licenses naming the spot as that cell type.",
+  "tier": "Fetched public",
+  "notebook": "Deconvolve a public section, then check against a higher-resolution run of comparable tissue",
+  "asserts": "Proportions sum to one per spot; a held-out simulated mixture is recovered within tolerance",
+  "rosetta": "The Python and R deconvolution routes on the same section, with the disagreement mapped rather than averaged",
+  "runtime": "30 to 60 min",
+  "memory": "16 GB",
+  "unsafe": "reference cell-type granularity",
+  "failure": "Proportions get thresholded into presence and absence, and the section is reported as a cell-type map.",
+  "diagnostic": "Plot the full proportion distribution per spot; the second-largest component is rarely negligible.",
+  "checks": [
+   "What is the unit of your estimate?",
+   "What happens to a rare type?",
+   "How would you falsify one of these assignments?"
+  ],
+  "further": "Reference bias is lesson 7.",
+  "caps": [
+   "Name the regime",
+   "Spot a silent failure"
+  ]
+ },
+ {
+  "n": 9,
+  "track": "K2",
+  "status": "draft",
+  "title": "The noise floor you were given for free",
+  "decision": "Your QC threshold came from a tutorial written for brain and you are working on tumour. Decide what threshold your own data can justify.",
+  "concept": "Negative and blank codewords as a measured noise floor, and QC thresholds that follow from it rather than from convention.",
+  "breaks": "That a count threshold transfers between tissues with different cell sizes and densities.",
+  "tier": "Fetched public",
+  "notebook": "Build a QC report from negative-probe counts on a public imaging run",
+  "asserts": "Blank probes are present in the loaded object; the derived floor is non-zero and tissue-specific",
+  "rosetta": "The same QC in R, noting that sequencing-based platforms have no blank-probe equivalent at all",
+  "runtime": "10 min",
+  "memory": "8 GB",
+  "unsafe": "fixed count thresholds, across tissue types",
+  "failure": "Blank probes are dropped at load, and thresholds are then copied from a tutorial written for a different tissue.",
+  "diagnostic": "Plot real counts against blank counts per cell; the cells you kept include a population that is mostly background.",
+  "checks": [
+   "What is your blank rate per cell?",
+   "Which cells fail on background but pass on total counts?",
+   "Where did your threshold actually come from?"
+  ],
+  "further": "Sequencing-based platforms have no equivalent control; say so explicitly.",
+  "caps": [
+   "Spot a silent failure"
+  ]
+ },
+ {
+  "n": 10,
+  "track": "K2",
+  "status": "draft",
+  "title": "Cell typing inherits the reference's blind spots",
+  "decision": "Your annotation is 94% confident everywhere, including in the region you believe is novel. Decide whether that confidence means anything.",
+  "concept": "Label transfer and reference mapping; confidence scores and what they do not measure.",
+  "breaks": "That a confidence score reflects the probability the label is correct rather than the distance to the nearest reference state.",
+  "tier": "Fetched public",
+  "notebook": "Annotate one section against two references and map the disagreement spatially",
+  "asserts": "A deliberately held-out cell type is not recovered, and the held-out cells still score as confident",
+  "rosetta": "The R label-transfer route on the same section, with the two confidence scales compared rather than assumed equivalent",
+  "runtime": "20 min",
+  "memory": "8 GB",
+  "unsafe": "confidence cutoffs, for rare states",
+  "failure": "An absent cell state is assigned to its nearest neighbour with high confidence, and the anomaly vanishes into a known label.",
+  "diagnostic": "Hold a type out of the reference on purpose and watch where its cells land, still confidently.",
+  "checks": [
+   "Where do the two references disagree?",
+   "Is that disagreement spatially structured?",
+   "What would an unseen state look like in your output?"
+  ],
+  "further": "De novo clustering trade-offs are out of scope.",
+  "caps": [
+   "Spot a silent failure"
+  ]
+ },
+ {
+  "n": 11,
+  "track": "K3",
+  "status": "draft",
+  "title": "Neighbourhood graphs and niches",
+  "decision": "You are about to write that macrophages and tumour cells interact. Decide whether that claim survives a different neighbourhood radius.",
+  "concept": "How a spatial graph is built, and how the radius or k you pick decides the answer before any statistics run.",
+  "breaks": "That cell density is constant across the section, so one radius means one thing everywhere.",
+  "tier": "Fetched public",
+  "notebook": "Neighbourhood enrichment under three graph definitions on one section",
+  "asserts": "Enrichment on a spatially shuffled control is not significant under any of the three graphs",
+  "rosetta": "The equivalent proximity enrichment in R, with the graph construction made explicit in both",
+  "runtime": "10 min",
+  "memory": "8 GB",
+  "unsafe": "neighbourhood radius, as density varies across the section",
+  "failure": "Enrichment reported without stating the graph, so a result that exists only at one radius is read as biology.",
+  "diagnostic": "Sweep the radius and plot the statistic against it; a real signal is a plateau, an artefact is a spike.",
+  "checks": [
+   "What radius, in microns?",
+   "Does the result survive a different graph?",
+   "Is cell density constant across your tissue?"
+  ],
+  "further": "Domain and niche detection deserves its own lesson.",
+  "caps": [
+   "Choose a valid null"
+  ]
+ },
+ {
+  "n": 12,
+  "track": "K3",
+  "status": "written",
+  "title": "Your neighbours are not independent samples",
+  "decision": "You have 300 spatially variable genes at q below 0.05 and a coherent biological story. Decide whether the test that produced them assumed something your tissue violates.",
+  "breaks": "That neighbouring cells are independent observations.",
+  "tier": "Simulated",
+  "notebook": "Simulated tissue with no true signal; run a naive test and count the false positives",
+  "asserts": "The naive test exceeds nominal error on null data, and the corrected test does not; sabotage the correction and confirm the assert fails",
+  "rosetta": "The R spatially variable gene route on the same null data, reporting its false positive rate too",
+  "runtime": "15 min",
+  "memory": "4 GB",
+  "unsafe": "any test assuming independent observations",
+  "failure": "Confident p-values for what is only tissue architecture. The gene list looks biologically coherent because anatomy is coherent.",
+  "diagnostic": "Run the identical pipeline on simulated tissue with no signal; count what comes back significant.",
+  "checks": [
+   "What is your false positive rate on null data?",
+   "What exactly does your permutation shuffle?",
+   "Would your real gene list survive it?"
+  ],
+  "further": "This lesson is the reason the site exists.",
+  "caps": [
+   "Choose a valid null",
+   "Spot a silent failure"
+  ],
+  "fig": "\n<svg viewBox=\"0 0 720 300\" role=\"img\" aria-label=\"Left: simulated tissue with a smooth expression gradient but no true signal. Right: p-value histograms, naive test skewed toward zero, structure-preserving permutation flat.\">\n  <defs>\n    <linearGradient id=\"tis\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\">\n      <stop offset=\"0%\" stop-color=\"var(--teal)\" stop-opacity=\"0.85\"/>\n      <stop offset=\"55%\" stop-color=\"var(--teal)\" stop-opacity=\"0.28\"/>\n      <stop offset=\"100%\" stop-color=\"var(--teal)\" stop-opacity=\"0.05\"/>\n    </linearGradient>\n  </defs>\n\n  <text x=\"0\" y=\"14\" font-size=\"12\" fill=\"var(--ink-faint)\" font-family=\"IBM Plex Sans\">Null tissue — no true signal</text>\n  <rect x=\"0\" y=\"26\" width=\"300\" height=\"220\" fill=\"url(#tis)\" stroke=\"var(--rule-firm)\"/>\n  <g fill=\"var(--ink)\" fill-opacity=\"0.5\">\n    <circle cx=\"40\"  cy=\"60\"  r=\"3\"/><circle cx=\"78\"  cy=\"52\"  r=\"3\"/><circle cx=\"120\" cy=\"70\"  r=\"3\"/>\n    <circle cx=\"62\"  cy=\"98\"  r=\"3\"/><circle cx=\"104\" cy=\"112\" r=\"3\"/><circle cx=\"150\" cy=\"88\"  r=\"3\"/>\n    <circle cx=\"188\" cy=\"66\"  r=\"3\"/><circle cx=\"212\" cy=\"104\" r=\"3\"/><circle cx=\"166\" cy=\"140\" r=\"3\"/>\n    <circle cx=\"94\"  cy=\"158\" r=\"3\"/><circle cx=\"132\" cy=\"182\" r=\"3\"/><circle cx=\"200\" cy=\"168\" r=\"3\"/>\n    <circle cx=\"248\" cy=\"130\" r=\"3\"/><circle cx=\"256\" cy=\"196\" r=\"3\"/><circle cx=\"60\"  cy=\"200\" r=\"3\"/>\n    <circle cx=\"176\" cy=\"216\" r=\"3\"/><circle cx=\"228\" cy=\"60\"  r=\"3\"/><circle cx=\"270\" cy=\"86\"  r=\"3\"/>\n  </g>\n  <line x1=\"0\" y1=\"262\" x2=\"60\" y2=\"262\" stroke=\"var(--ink)\" stroke-width=\"2\"/>\n  <text x=\"66\" y=\"266\" font-size=\"11\" fill=\"var(--ink-soft)\" font-family=\"IBM Plex Sans\">200 µm</text>\n\n  <text x=\"360\" y=\"14\" font-size=\"12\" fill=\"var(--ink-faint)\" font-family=\"IBM Plex Sans\">p-values on that null tissue</text>\n\n  <text x=\"360\" y=\"40\" font-size=\"11\" fill=\"var(--flag)\" font-family=\"IBM Plex Sans\">Naive test — assumes independence</text>\n  <g fill=\"var(--flag)\" fill-opacity=\"0.75\">\n    <rect x=\"360\" y=\"48\" width=\"26\" height=\"62\" /><rect x=\"390\" y=\"70\" width=\"26\" height=\"40\"/>\n    <rect x=\"420\" y=\"86\" width=\"26\" height=\"24\"/><rect x=\"450\" y=\"94\" width=\"26\" height=\"16\"/>\n    <rect x=\"480\" y=\"99\" width=\"26\" height=\"11\"/><rect x=\"510\" y=\"101\" width=\"26\" height=\"9\"/>\n    <rect x=\"540\" y=\"103\" width=\"26\" height=\"7\"/><rect x=\"570\" y=\"104\" width=\"26\" height=\"6\"/>\n    <rect x=\"600\" y=\"105\" width=\"26\" height=\"5\"/><rect x=\"630\" y=\"105\" width=\"26\" height=\"5\"/>\n  </g>\n  <line x1=\"360\" y1=\"110\" x2=\"660\" y2=\"110\" stroke=\"var(--rule-firm)\"/>\n  <text x=\"360\" y=\"124\" font-size=\"10\" fill=\"var(--ink-faint)\" font-family=\"IBM Plex Sans\">0</text>\n  <text x=\"648\" y=\"124\" font-size=\"10\" fill=\"var(--ink-faint)\" font-family=\"IBM Plex Sans\">1</text>\n\n  <text x=\"360\" y=\"160\" font-size=\"11\" fill=\"var(--teal)\" font-family=\"IBM Plex Sans\">Structure-preserving permutation</text>\n  <g fill=\"var(--teal)\" fill-opacity=\"0.75\">\n    <rect x=\"360\" y=\"196\" width=\"26\" height=\"34\"/><rect x=\"390\" y=\"197\" width=\"26\" height=\"33\"/>\n    <rect x=\"420\" y=\"195\" width=\"26\" height=\"35\"/><rect x=\"450\" y=\"198\" width=\"26\" height=\"32\"/>\n    <rect x=\"480\" y=\"196\" width=\"26\" height=\"34\"/><rect x=\"510\" y=\"199\" width=\"26\" height=\"31\"/>\n    <rect x=\"540\" y=\"195\" width=\"26\" height=\"35\"/><rect x=\"570\" y=\"197\" width=\"26\" height=\"33\"/>\n    <rect x=\"600\" y=\"196\" width=\"26\" height=\"34\"/><rect x=\"630\" y=\"198\" width=\"26\" height=\"32\"/>\n  </g>\n  <line x1=\"360\" y1=\"230\" x2=\"660\" y2=\"230\" stroke=\"var(--rule-firm)\"/>\n  <text x=\"360\" y=\"244\" font-size=\"10\" fill=\"var(--ink-faint)\" font-family=\"IBM Plex Sans\">0</text>\n  <text x=\"648\" y=\"244\" font-size=\"10\" fill=\"var(--ink-faint)\" font-family=\"IBM Plex Sans\">1</text>\n  <text x=\"360\" y=\"272\" font-size=\"11\" fill=\"var(--ink-soft)\" font-family=\"IBM Plex Sans\">Under a correct null the histogram is flat. A spike at zero is the</text>\n  <text x=\"360\" y=\"288\" font-size=\"11\" fill=\"var(--ink-soft)\" font-family=\"IBM Plex Sans\">test telling you its assumption is false.</text>\n</svg>",
+  "figcap": "Both histograms come from tissue containing no true expression signal. The naive test produces a spike at zero because it counted correlated neighbours as independent evidence. Under a correct null, p-values are uniform — a flat histogram is what a calibrated test looks like.",
+  "conceptHTML": "\n<p>Every test you inherited from dissociated single-cell analysis assumes its observations\nare independent draws. That assumption was never exactly true, but dissociation at least\ndestroyed the spatial arrangement that would have made the violation systematic. In intact\ntissue the arrangement is preserved, and it is preserved because it is the thing you came\nto study.</p>\n\n<p>Cells near each other share a niche, an oxygen gradient, a lineage history, and a local\nmicroenvironment. Their expression is correlated for reasons that have nothing to do with\nwhatever hypothesis you are testing. Near things are more related than distant things —\nthis is the first law of geography, and in spatial biology it is both the signal and the\nproblem. It is the signal because spatial structure is why you paid for the assay. It is\nthe problem because the structure is present <em>under the null too</em>.</p>\n\n<h3>The quantity, and its units</h3>\n\n<p>Spatial autocorrelation is usually summarised by Moran's I: a dimensionless statistic\nrunning roughly from −1 to +1, with an expectation of −1/(n−1) — very slightly below zero —\nwhen there is no spatial structure at all. The critical thing to internalise is that\nMoran's I is not a property of a gene. It is a property of a gene <em>and a weights\nmatrix</em>. Change the neighbourhood definition and the number changes. A reported I\nwithout a stated graph is not interpretable, which is the same disease lesson 8 diagnoses\nfrom a different angle.</p>\n\n<p>The mechanism by which this breaks a p-value is worth stating plainly, because it is not\nmysterious. A test computes a statistic and compares it to the spread you would expect\nunder the null. That spread depends on how much independent information you have. With\npositively autocorrelated data, ten thousand cells do not carry ten thousand cells' worth\nof information — neighbouring cells are partly telling you the same thing twice. The\neffective sample size is smaller, sometimes by more than an order of magnitude. The test\ndoes not know this. It divides by a standard error computed as though every cell were a\nfresh draw, gets a number that is too small, and returns a p-value that is too small with\nit. The result is <b>anticonservative</b>: too many rejections, confidently.</p>\n\n<h3>Why the wrong gene list looks right</h3>\n\n<p>This is the part that makes the failure survive review. When a miscalibrated test hands\nback three hundred genes, those genes are not a random sample of the transcriptome. They\nare the genes with the strongest spatial structure — which means the genes that track\nanatomy. Anatomy is biologically coherent, so the list is enriched for coherent pathways.\nYou run enrichment analysis, get regionally sensible terms, and the story writes itself.</p>\n\n<p>Nothing about the output looks broken. The volcano plot is normal, the q-values are\nsmall, the biology is plausible. The only evidence that anything went wrong lives in a\ncomparison you have not run yet.</p>\n\n<h3>What a permutation has to preserve</h3>\n\n<p>The instinct is to permute, and the instinct is right — but what you shuffle decides what\nyou are testing, and the obvious shuffle tests the wrong thing.</p>\n\n<p>If you shuffle expression values freely across all cells, you destroy the spatial\nstructure entirely. The resulting null says \"there is no spatial pattern of any kind.\"\nAlmost every gene rejects that null, because tissue has structure. You have built a test\nfor the presence of anatomy and then discovered anatomy.</p>\n\n<p>What you usually want is a null that <em>keeps</em> the spatial structure and breaks only\nthe association you are asking about. That means a structure-preserving randomisation:\ntoroidal shifts of the whole pattern, permutation restricted within anatomical regions or\nwithin density strata, or a parametric null that simulates from a fitted spatial covariance\nmodel. Each makes a different assumption about what counts as background. Being explicit\nabout which one you chose is most of the work.</p>\n\n<p>The one assumption that breaks first, before any of the others: that neighbouring cells\nare independent observations. Once that is false, every downstream p-value is a number\nwhose meaning you have not established.</p>",
+  "codePython": "<span class=\"tok-c\"># Not yet executed. Run it, read the output, then commit the freeze cache.</span>\n<span class=\"tok-k\">import</span> numpy <span class=\"tok-k\">as</span> np\n<span class=\"tok-k\">from</span> data.simulate <span class=\"tok-k\">import</span> simulate_null_tissue\n\n<span class=\"tok-c\"># Spatially structured tissue. No gene has a true spatial signal.</span>\nadata, truth = simulate_null_tissue(n_cells=<span class=\"tok-s\">4000</span>, n_genes=<span class=\"tok-s\">500</span>, seed=<span class=\"tok-s\">0</span>)\n<span class=\"tok-k\">assert</span> truth[<span class=\"tok-s\">\"n_true_svg\"</span>] == <span class=\"tok-s\">0</span>\n\n<span class=\"tok-c\"># The naive route: build a graph, run the standard test, count rejections.</span>\n<span class=\"tok-k\">import</span> squidpy <span class=\"tok-k\">as</span> sq\nsq.gr.spatial_neighbors(adata, radius=<span class=\"tok-s\">30.0</span>, coord_type=<span class=\"tok-s\">\"generic\"</span>)\nsq.gr.spatial_autocorr(adata, mode=<span class=\"tok-s\">\"moran\"</span>, n_perms=<span class=\"tok-s\">100</span>)\n\nnaive_fpr = (adata.uns[<span class=\"tok-s\">\"moranI\"</span>][<span class=\"tok-s\">\"pval_norm_fdr_bh\"</span>] &lt; <span class=\"tok-s\">0.05</span>).mean()\n<span class=\"tok-k\">print</span>(<span class=\"tok-s\">f\"naive false positive rate: {naive_fpr:.3f}\"</span>)  <span class=\"tok-c\"># expect &gt;&gt; 0.05</span>",
+  "codeAssert": "<span class=\"tok-c\"># These asserts ARE the lesson. Sabotage the permutation below —</span>\n<span class=\"tok-c\"># swap it for a free shuffle — and confirm the second one fails.</span>\n\n<span class=\"tok-k\">assert</span> naive_fpr &gt; <span class=\"tok-s\">0.15</span>, (\n    <span class=\"tok-s\">\"the naive test should be badly miscalibrated here; \"</span>\n    <span class=\"tok-s\">\"if it is not, the simulated tissue has no autocorrelation\"</span>\n)\n\n<span class=\"tok-k\">assert</span> <span class=\"tok-s\">0.02</span> &lt; corrected_fpr &lt; <span class=\"tok-s\">0.08</span>, (\n    <span class=\"tok-s\">f\"structure-preserving null should sit near nominal 0.05, got {corrected_fpr}\"</span>\n)\n\n<span class=\"tok-c\"># Guard against the vacuous assert: confirm we tested something.</span>\n<span class=\"tok-k\">assert</span> len(pvals) == adata.n_vars &gt; <span class=\"tok-s\">0</span>",
+  "codeR": "<span class=\"tok-c\"># The same null data through the R route, reporting its own false</span>\n<span class=\"tok-c\"># positive rate. A method is not exempt because it is in another language.</span>\nlibrary(Seurat)\n\nobj <- readRDS(<span class=\"tok-s\">\"data/cache/null_tissue.rds\"</span>)\nobj <- FindSpatiallyVariableFeatures(\n  obj, assay = <span class=\"tok-s\">\"Spatial\"</span>, features = VariableFeatures(obj),\n  selection.method = <span class=\"tok-s\">\"moransi\"</span>\n)\n\nsvf <- SpatiallyVariableFeatures(obj, selection.method = <span class=\"tok-s\">\"moransi\"</span>)\ncat(<span class=\"tok-s\">\"R route flagged\"</span>, length(svf), <span class=\"tok-s\">\"of\"</span>, nrow(obj), <span class=\"tok-s\">\"genes on null data\\n\"</span>)",
+  "answers": [
+   "You do not know it until you have measured it, and the only way to measure it is to run your exact pipeline — same graph, same test, same correction — on tissue where you know there is no signal. That is what the simulated tier exists for. If the rate comes back near your nominal alpha, your null is doing its job. If it comes back at 0.4, four out of ten of your reported genes are noise and you cannot tell which.",
+   "Whatever you shuffle is what you are declaring to be exchangeable under the null, and that choice defines the hypothesis. A free shuffle of expression across all cells destroys spatial structure, so it tests 'is there any anatomy here' — a question tissue always answers yes to. A structure-preserving randomisation, such as a toroidal shift or permutation within anatomical regions, keeps the architecture and breaks only the association you are actually asking about.",
+   "That is the experiment to run, not a rhetorical question. Rerun the identical pipeline under the structure-preserving null and see how much of the list remains. Expect substantial attrition. If the surviving genes still tell your story, the story got stronger. If the list collapses, you learned that before a reviewer did."
+  ],
+  "sources": "Method papers reporting calibration of spatially variable gene tests on null data; the geostatistics literature on effective sample size. All require verification against the published record before citation."
+ },
+ {
+  "n": 13,
+  "track": "K3",
+  "status": "draft",
+  "title": "Ligand and receptor is co-expression until proven otherwise",
+  "decision": "A ranked interaction table has your favourite pair at the top. Decide what would make you believe it is signalling rather than abundance.",
+  "concept": "How interaction scores are computed, and the inferential gap between a score and a claim about communication.",
+  "breaks": "That the score is independent of how highly the two genes are expressed.",
+  "tier": "Fetched public",
+  "notebook": "Score interactions, then test the top hit against a spatially aware null",
+  "asserts": "Score rank correlates with mean expression on shuffled data, demonstrating the abundance confound directly",
+  "rosetta": "An R interaction-scoring route on the same data, with the two rankings compared",
+  "runtime": "20 min",
+  "memory": "8 GB",
+  "unsafe": "database choice, which changes the ranking",
+  "failure": "A ranked interaction table is read as a signalling network when the ranking largely reflects expression abundance.",
+  "diagnostic": "Rerun with cell labels shuffled within the tissue; the abundance-driven pairs survive.",
+  "checks": [
+   "What null did the score use?",
+   "Does the pair survive a permutation?",
+   "What experiment would falsify it?"
+  ],
+  "further": "No benchmarking of methods against each other.",
+  "caps": [
+   "Choose a valid null",
+   "Spot a silent failure"
+  ]
+ },
+ {
+  "n": 14,
+  "track": "K3",
+  "status": "draft",
+  "title": "Section is batch, and batch is confounded with biology",
+  "decision": "Two sections, one control and one treated, cut from different regions. You are about to integrate them. Decide what the correction is going to remove.",
+  "concept": "Why two sections are never only technical replicates: depth, region and handling all differ, and region is often the thing being studied.",
+  "breaks": "That batch and biology are separable in this design.",
+  "tier": "Fetched public",
+  "notebook": "Integrate two sections, then check what anatomy the correction erased",
+  "asserts": "A known regional difference present before integration is measured after it, not assumed preserved",
+  "rosetta": "The R integration route on the same pair, with the erased anatomy quantified the same way",
+  "runtime": "30 min",
+  "memory": "16 GB",
+  "unsafe": "integration strength, when sections differ in region",
+  "failure": "Integration succeeds by every standard metric and quietly removes the regional difference that was the finding.",
+  "diagnostic": "Plot the regional marker spatially before and after; the gradient is gone while the mixing metric improved.",
+  "checks": [
+   "What varies between your sections besides batch?",
+   "What did the correction change spatially?",
+   "Would your result survive no correction at all?"
+  ],
+  "further": "Cross-donor design is out of scope.",
+  "caps": [
+   "Choose a valid null",
+   "Spot a silent failure"
+  ]
+ },
+ {
+  "n": 15,
+  "track": "K4",
+  "status": "draft",
+  "title": "When the data does not fit in memory",
+  "decision": "A notebook that ran in two minutes on the demo has now been running six hours on a full section. Decide what you needed to know before you started.",
+  "concept": "Zarr and Parquet backing, chunking, and lazy access; where the object model lets you avoid loading everything at once.",
+  "breaks": "That an operation which was cheap on the toy tier stays cheap at section scale.",
+  "tier": "Fetched public",
+  "notebook": "The same analysis eager and chunked, both profiled",
+  "asserts": "Both routes return identical results; peak memory of the chunked route is measured, not estimated",
+  "rosetta": "Stated plainly: there is no close R equivalent to the chunked store here, and readers working in R should know that before committing to it.",
+  "runtime": "25 min",
+  "memory": "chunked a few GB versus eager tens of GB",
+  "unsafe": "chunk size, relative to your access pattern",
+  "failure": "A notebook that works on the toy tier is run on a full section and silently swaps for hours instead of failing fast.",
+  "diagnostic": "Profile peak memory on a subsample and extrapolate before running the whole thing.",
+  "checks": [
+   "What is your peak memory?",
+   "Which step forces a full load?",
+   "What chunk size matches how you actually read the data?"
+  ],
+  "further": "Cluster and cloud execution are out of scope.",
+  "caps": [
+   "Run it again"
+  ]
+ },
+ {
+  "n": 16,
+  "track": "K4",
+  "status": "draft",
+  "title": "Plotting spatial data honestly",
+  "decision": "Your figure has 22 cell types in a rainbow palette and your co-author cannot read it. Decide what the figure is actually for.",
+  "concept": "Equal aspect ratio, scale bars in microns, one hue for continuous quantities, and the readable ceiling of about eight categorical colours.",
+  "breaks": "That a palette which looks fine on your monitor is readable to your readers.",
+  "tier": "Committed toy",
+  "notebook": "One section plotted four ways, with the palette checked computationally for colour-vision deficiency",
+  "asserts": "Minimum pairwise colour distance under simulated deuteranopia exceeds a stated threshold",
+  "rosetta": "The same four figures in R, since figure code is where readers most often switch languages",
+  "runtime": "3 min",
+  "memory": "under 2 GB",
+  "unsafe": "category count, past about eight",
+  "failure": "A rainbow scale invents boundaries that are not in the data, and twenty categories at once hide the pattern the figure was meant to show.",
+  "diagnostic": "Render the palette through a colour-vision deficiency simulation and compute the distances rather than eyeballing them.",
+  "checks": [
+   "Is the aspect ratio equal?",
+   "Did you compute the colour-vision check or eyeball it?",
+   "Can you see the image under the points?"
+  ],
+  "further": "Interactive exploration is a tool, not a figure.",
+  "caps": [
+   "Verify alignment",
+   "Spot a silent failure"
+  ]
+ },
+ {
+  "n": 17,
+  "track": "K4",
+  "status": "draft",
+  "title": "An analysis someone else can run",
+  "decision": "A reader emails to say your notebook does not run. Decide what you should have pinned six months ago.",
+  "concept": "Pinned environments, cached executed output, and stating runtime and peak memory as part of the result rather than as an afterthought.",
+  "breaks": "That a lock file on your machine is the same thing as a stated version on the page.",
+  "tier": "Committed toy",
+  "notebook": "Take a finished analysis and make it rerunnable from a clean machine",
+  "asserts": "A clean-checkout build reproduces the committed output; deliberately unpin one package and confirm the check fails",
+  "rosetta": "The R environment equivalent, with the same clean-checkout test applied to it",
+  "runtime": "15 min",
+  "memory": "under 2 GB",
+  "unsafe": "unpinned package versions, which rot within months",
+  "failure": "Frozen notebook output exists only on the author's machine. The site looks fine locally and breaks on every other build.",
+  "diagnostic": "Build from a clean checkout in CI; the missing cache surfaces immediately instead of months later.",
+  "checks": [
+   "Are versions stated on the page, not only in a lock file?",
+   "Is executed output committed?",
+   "Does a clean checkout build?"
+  ],
+  "further": "CI publishes from cache and never re-runs the heavy analysis; a separate manual workflow proves the cache is honest.",
+  "caps": [
+   "Run it again"
+  ]
+ }
+];
+
+/* ------------------------------------------------------------------ */
+
+const esc = s => String(s).replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+const byN = n => LESSONS.find(l => l.n === n);
+const slugOf = l => "l" + String(l.n).padStart(2,"0");
+
+/* ---------- sidebar ---------- */
+function buildNav(){
+  const w = document.getElementById("navwrap");
+  let h = '<div class="navgroup"><h4>Start</h4>'
+        + '<a class="nav" href="#/" data-r="/">Home</a>'
+        + '<a class="nav" href="#/paths" data-r="/paths">Reader paths</a>'
+        + '<a class="nav" href="#/data" data-r="/data">Data strategy</a>'
+        + '<a class="nav" href="#/resources" data-r="/resources">Resources</a>'
+        + '<a class="nav" href="#/how" data-r="/how">How a lesson is built</a></div>';
+  TRACKS.forEach(t => {
+    const ls = LESSONS.filter(l => l.track === t.id);
+    if(!ls.length) return;
+    h += '<div class="navgroup"><h4>' + esc(t.name) + '</h4>';
+    ls.forEach(l => {
+      h += '<a class="nav" href="#/' + slugOf(l) + '" data-r="/' + slugOf(l) + '">'
+        + '<i>' + String(l.n).padStart(2,"0") + '</i>' + esc(l.title) + '</a>';
+    });
+    h += '</div>';
+  });
+  w.innerHTML = h;
+}
+
+/* ---------- pages ---------- */
+function pageHome(){
+  const written = LESSONS.filter(l => l.status === "written").length;
+  const cards = TRACKS.map(t => {
+    const ls = LESSONS.filter(l => l.track === t.id);
+    return '<a class="card" href="#/' + slugOf(ls[0]) + '"><b>' + esc(t.name) + '</b>'
+      + '<span>' + ls.length + ' lessons, starting with “' + esc(ls[0].title) + '”</span></a>';
+  }).join("");
+  return `
+<h1>Nothing here <em>crashes.</em> That is what this site teaches.</h1>
+<p class="lede">Every lesson answers one decision you actually face, runs on data small
+enough to download now, and ends by showing you the wrong answer it can produce without
+ever throwing an error.</p>
+
+<p>Bad segmentation produces a beautiful UMAP. A flipped y-axis produces a plausible
+tissue map. Two sections cut at different thicknesses produce a convincing new cell state. A differential test run across spatially autocorrelated neighbours returns
+confident p-values for what is only tissue architecture. Almost nothing in this field
+fails loudly, so a tutorial that only shows you what worked has taught you the wrong
+base rate.</p>
+
+<div class="call warn"><span class="ct">Status</span>
+<p>${written} of ${LESSONS.length} lessons are written in full — start with
+<a href="#/l09">lesson 9</a> or <a href="#/l03">lesson 3</a>. The rest carry their
+structure, their failure mode and their scale notes, but not yet their prose or executed
+notebooks. Nothing here has been run end to end, and no citation has been verified against
+the published record. Both are tracked per lesson rather than glossed.</p></div>
+
+<h2>Where to start</h2>
+<div class="cards">${cards}</div>
+<p>If you would rather follow a route than a table of contents, the
+<a href="#/paths">reader paths</a> are organised by why you turned up. If you would rather
+read something that already exists, <a href="#/resources">Resources</a> catalogues the
+public workshops, tool ecosystems and benchmarks worth your time — including the ones that
+do parts of this better than we do.</p>
+
+<h2>What you will be able to do</h2>
+<ul>
+<li><b>Name the regime</b> — state what a platform physically measures and at what
+resolution, and name the claims its data cannot support.</li>
+<li><b>Verify alignment</b> — confirm that points, images and tables share a coordinate
+system before believing any tissue map.</li>
+<li><b>Interrogate segmentation</b> — inspect masks over the image and recognise the
+signatures of over- and under-segmentation downstream.</li>
+<li><b>Choose a valid null</b> — apply a test that respects spatial autocorrelation
+instead of one that assumes independent samples.</li>
+<li><b>Spot a silent failure</b> — recognise output that is plausible, non-crashing and
+wrong, and know which figure exposes it.</li>
+<li><b>Run it again</b> — reproduce an analysis from a pinned environment, with runtime
+and peak memory known in advance.</li>
+</ul>
+
+<h2>Where the boundary sits</h2>
+<p>The site covers the experimental decisions that determine what your data can support —
+allocation and blocking, what each bench step leaves behind in the matrix, what a targeted
+panel can and cannot see. It does not cover bench execution: buffers, incubation times and
+instrument settings belong to the vendor protocol and change between chemistry versions
+faster than a tutorial can honestly track.</p>
+<p>Also out of scope: platform selection advice, and benchmarking methods against each
+other. Both age badly, and both are better served by the literature than by a tutorial.</p>`;
+}
+
+function pagePaths(){
+  const blocks = PATHS.map(p => {
+    const route = p.ls.map((n,i) => {
+      const l = byN(n);
+      return (i ? '<span>→</span>' : '') +
+        '<a href="#/' + slugOf(l) + '">' + String(n).padStart(2,"0") + ' · ' + esc(l.title) + '</a>';
+    }).join("");
+    return '<div class="pathblock"><h3>' + esc(p.name) + '</h3>'
+      + '<div class="who">' + esc(p.who) + ' · Assumes: ' + esc(p.assumes) + '</div>'
+      + '<p class="pnote">' + esc(p.note) + '</p>'
+      + '<div class="route">' + route + '</div>'
+      + '<div class="plen">' + p.ls.length + ' lessons</div></div>';
+  }).join("");
+  return `
+<h1>Reader paths</h1>
+<p class="lede">Nobody starts at lesson one. Pick the route that matches why you are here.
+Each is a subset of the same seventeen lessons, ordered for that reason rather than by
+topic.</p>
+${blocks}
+<p>None of these routes covers everything, and that is deliberate. A path you finish is
+worth more than a curriculum you abandon a third of the way through. If you want the whole
+thing in order, the sidebar is the table of contents.</p>`;
+}
+
+function pageData(){
+  const rows = TIERS.map(t =>
+    '<tr><td><b>' + esc(t.name) + '</b></td><td>' + esc(t.size) + '</td><td>'
+    + esc(t.where) + '</td><td>' + esc(t.teaches) + '</td></tr>').join("");
+  const rules = TIERS.map(t =>
+    '<h3>' + esc(t.name) + '</h3><p>' + esc(t.rule) + '</p>').join("");
+  return `
+<h1>Data strategy</h1>
+<p class="lede">The data does not fit. That constraint was settled before a single lesson
+was written, because everything else follows from it.</p>
+
+<p>A single imaging run is gigabytes and a high-resolution section is larger. It cannot be
+committed to the repository, cannot be executed in continuous integration, and cannot be
+downloaded by a reader before lesson one. So the site uses three tiers, and every lesson
+declares which one it is in.</p>
+
+<div class="tablewrap"><table>
+<thead><tr><th>Tier</th><th>Size</th><th>Where it lives</th><th>What it teaches</th></tr></thead>
+<tbody>${rows}</tbody></table></div>
+
+<h2>The rule that keeps each tier honest</h2>
+${rules}
+
+<h2>Rules that apply to all of it</h2>
+<ul>
+<li>Never commit primary data. Commit the <em>script</em> that fetches it, pinned to a
+specific version or accession, and record the checksum.</li>
+<li>Record provenance and licence per dataset. Vendor demo data, consortium releases and
+paper supplements have different terms; write them down once, in
+<code>data/SOURCES.md</code>.</li>
+<li>Never use patient data in teaching material, and never data that could be
+re-identified from tissue morphology.</li>
+<li>Record negative results. “No public dataset of this tissue on this platform was
+found” is a finding, and it stops the next person repeating the search.</li>
+</ul>
+
+<div class="call"><span class="ct">Why the simulated tier matters most</span>
+<p>It is the only tier where the right answer is known, which makes it the only place a
+reader can measure how far their estimate landed from the truth. It is also the tier most
+often skipped, because it takes work to build and looks less impressive than real tissue.
+Lessons 4 and 9 depend on it entirely.</p></div>`;
+}
+
+function pageHow(){
+  return `
+<h1>How a lesson is built</h1>
+<p class="lede">Every lesson fills all seven slots, in this order. A missing slot is a
+defect, not a style choice.</p>
+
+<div class="call"><span class="ct">Rule zero</span>
+<p>If you cannot write, in one sentence, the decision this lesson helps someone make, the
+lesson does not exist yet. “Understand neighbourhood enrichment” is a topic. “You are about
+to write that macrophages and tumour cells interact — decide whether that survives a
+different radius” is a decision. It has a person in it, and a problem.</p></div>
+
+<h2>The seven slots</h2>
+<ol>
+<li><b>The decision it serves.</b> One sentence, concrete, with a person in it.</li>
+<li><b>Concept.</b> What is measured, in what units, at what resolution. One figure that
+carries an idea rather than decorating the page. Name the assumption that breaks first.</li>
+<li><b>Runnable notebook.</b> Real code, executed, on data whose truth is known — with
+asserts on recovered values, identities that must hold, and units that must cancel.</li>
+<li><b>Rosetta panel.</b> The same computation in R. Readers arrive from different tools.
+Where no equivalent exists, the lesson says so plainly instead of omitting the slot.</li>
+<li><b>Failure mode.</b> Something broken on purpose, plus the diagnostic that catches it.
+This is the slot most often skipped and the one readers remember.</li>
+<li><b>Self-check.</b> Three questions with folded answers, testing judgement rather than
+recall.</li>
+<li><b>Going further.</b> Where to read next, and what the lesson deliberately omitted.</li>
+</ol>
+
+<h2>Two rules about the code</h2>
+<p>An assert that cannot fail is not a test. <code>all(x &gt; 0 for x in [])</code> is
+vacuously true. Before a notebook is committed, sabotage the code each assert guards and
+confirm the assert fires.</p>
+<p>Executed output is committed to the repository. Frozen output that exists only on the
+author's machine looks fine locally and breaks every other build, so continuous
+integration publishes from the cache and never re-runs the heavy analysis. A separate
+manual workflow rebuilds from source to prove the cache is honest.</p>
+
+<h2>Two rules about sources</h2>
+<p>Never write a citation from memory — verify each against the published record in the
+session you write it, DOI included. An annotation from an abstract is not an annotation
+from the paper, so say which you read.</p>
+<p>Check the licence before reusing a figure. Most literature is all rights reserved, and
+“free to read” is permission to read, not to copy. Link, never host; redraw figures from
+the equations or the underlying data.</p>`;
+}
+
+const RES_LISTS = [
+ {u:"https://github.com/drieslab/awesome-spatial-data-analysis", n:"drieslab/awesome-spatial-data-analysis",
+  d:"Tools and methods for spatial transcriptomic analysis, from the Giotto authors."},
+ {u:"https://github.com/crazyhottommy/awesome_spatial_omics", n:"crazyhottommy/awesome_spatial_omics",
+  d:"Tools <b>and review papers</b> — the strongest starting point if you want the literature rather than the software."},
+ {u:"https://github.com/p-gueguen/Spatial_transcriptomics_tools", n:"p-gueguen/Spatial_transcriptomics_tools",
+  d:"The best organised of the three: tags each entry by language and interface, including GUI tools."},
+ {u:"https://github.com/SindiLab/Deep-Learning-in-Spatial-Transcriptomics-Analysis", n:"SindiLab/Deep-Learning-in-Spatial-Transcriptomics-Analysis",
+  d:"Machine learning methods by analysis stage, tabulated with language and year."}
+];
+
+const RES_COURSES = [
+ {u:"https://github.com/fhausmann/workshop_spatial", n:"fhausmann/workshop_spatial", lang:"Python",
+  d:"Explicitly a beginner's course on Visium — visualisation, expression patterns, clustering. Start here if you have never analysed spatial data."},
+ {u:"https://github.com/theislab/spatial_scog_workshop_2022", n:"theislab/spatial_scog_workshop_2022", lang:"Python",
+  d:"SCOG workshop notebooks with per-session conda environments. Older, but from the group behind much of the scverse spatial stack."},
+ {u:"https://github.com/ashoks773/SpatialTranscriptomicsWorkflow", n:"ashoks773/SpatialTranscriptomicsWorkflow", lang:"Python",
+  d:"End-to-end walkthrough on a public hepatocellular carcinoma dataset, from download through annotation."},
+ {n:"drieslab/giotto_workshop_2024", lang:"R",
+  d:"Giotto workshop materials. Listed in the drieslab organisation; not yet opened here."},
+ {n:"spatial-omics-tutorials (BIML 2025)", lang:"Python / R",
+  d:"Tutorials and best practices from BIML 2025. Catalogued in p-gueguen's list; not yet opened here."},
+ {n:"MGC-BioSB-Spatial-Omics-Analysis-2025", lang:"Python",
+  d:"Workshop materials. Catalogued in p-gueguen's list; not yet opened here."}
+];
+
+const RES_BENCH = [
+ ["Imaging platform benchmarking","False discovery rate differs substantially by platform, and by chemistry version within a platform",5],
+ ["Xenium quality assessment","Detection efficiency 1.2 to 1.5 times Chromium v2 — targeted platforms are not low quality",5],
+ ["Segmentation benchmarking","Cell-type calling accuracy ranged 35 to 74 per cent across methods on the same simulated tissue",7],
+ ["Spatially variable genes","Most methods produce poorly calibrated p-values; rank-based selection beats significance cutoffs",12],
+ ["Gene-category enrichment","Over 500-fold inflation of false positives with spatially autocorrelated phenotypes",12]
+];
+
+function resRow(x){
+  const name = x.u ? '<a href="' + x.u + '" target="_blank" rel="noopener">' + esc(x.n) + '</a>'
+                   : '<code>' + esc(x.n) + '</code>';
+  const chk  = x.u ? '<span class="checked">2026-09-01</span>'
+                   : '<span class="checked">not opened</span>';
+  return '<tr' + (x.u ? '' : ' class="unchecked"') + '><td>' + name + '</td>'
+       + (x.lang ? '<td>' + esc(x.lang) + '</td>' : '')
+       + '<td>' + x.d + '</td><td>' + chk + '</td></tr>';
+}
+
+function pageResources(){
+  return '<h1>What already exists, and what each one is <em>for</em></h1>'
++ '<p class="lede">Most of what you need to learn spatial omics is already public. The '
++ 'problem is not scarcity — it is that a search returns forty links with no indication of '
++ 'which are maintained, which assume you already know scanpy, and which were written for a '
++ 'chemistry version that no longer ships.</p>'
++ '<p>This page is a filter, not an index. For exhaustive coverage, the curated lists below '
++ 'do it better and are maintained by people closer to the tools.</p>'
+
++ '<h2>What gets listed here</h2><ul>'
++ '<li><b>It teaches, or it is a primary reference.</b> Marketing pages do not qualify, '
++ 'however informative they look.</li>'
++ '<li><b>Its level is stateable.</b> If we cannot say who it is for, it is not useful to '
++ 'send anyone to.</li>'
++ '<li><b>It is reachable</b> without a login, a licence or an institutional subscription.</li>'
++ '<li><b>It was checked on the date shown.</b> An unchecked link is a claim we are not '
++ 'making.</li></ul>'
+
++ '<div class="call warn"><span class="ct">How to read the dates</span><p>Entries with a '
++ 'link were opened and confirmed on the date shown. Entries in <code>monospace</code> with '
++ 'no link are ones we know exist by name from the aggregator lists but have <b>not opened '
++ 'ourselves</b>. They are recorded so the search is not repeated, and deliberately left '
++ 'unlinked until checked — the same rule the lessons apply to citations.</p></div>'
+
++ '<h2>Start here: the curated lists</h2>'
++ '<p>Three general-purpose lists cover the tool landscape more completely than this site '
++ 'intends to. Read one first; come back here for opinions about what to actually use.</p>'
++ '<div class="matrix-scroll"><table class="res"><thead><tr><th>Resource</th>'
++ '<th>What it is</th><th>Checked</th></tr></thead><tbody>'
++ RES_LISTS.map(resRow).join("") + '</tbody></table></div>'
+
++ '<h2>Courses and workshop material</h2>'
++ '<p>The most useful free teaching material in this field is workshop repositories. They '
++ 'are written to be taught from, so they assume less than documentation and explain more '
++ 'than a paper. The cost is that they are snapshots — a 2022 workshop teaches a 2022 API.</p>'
++ '<div class="matrix-scroll"><table class="res"><thead><tr><th>Resource</th>'
++ '<th>Language</th><th>For whom</th><th>Checked</th></tr></thead><tbody>'
++ RES_COURSES.map(resRow).join("") + '</tbody></table></div>'
+
++ '<h2>Tool ecosystems</h2>'
++ '<p>Choose an ecosystem before choosing a tool. Moving between them mid-project costs '
++ 'more than either tool saves, and most methods exist in only one.</p>'
++ '<p><b>Python and scverse.</b> <code>squidpy</code> for spatial statistics and '
++ 'neighbourhood analysis; <code>spatialdata</code> for the object model and coordinate '
++ 'systems (lesson 6); <code>bento</code> for subcellular analysis; <code>scvi-tools</code> '
++ 'for the deep-learning family including <code>DestVI</code>.</p>'
++ '<p><b>R.</b> <code>Giotto</code>, which also has a Python interface; <code>Seurat</code> '
++ 'for spatial objects; <code>Voyager</code> on <code>SpatialFeatureExperiment</code>, '
++ 'oriented around exploratory spatial data analysis; <code>spacexr</code> for RCTD '
++ 'deconvolution; <code>nnSVG</code>, notable as one of the better-calibrated options for '
++ 'spatially variable genes — see <a href="#/l12">lesson 12</a>; <code>semla</code> and '
++ '<code>SPATA2</code> as general toolkits.</p>'
++ '<p><b>Visualisation.</b> <code>Vitessce</code> for integrated exploration in the browser, '
++ 'and <code>rakaia</code> for in-browser interactive analysis.</p>'
++ '<p><b>Without code.</b> <code>VR-Omics</code> offers end-to-end processing through a GUI. '
++ 'Worth knowing this category exists: a substantial part of the field does not work at a '
++ 'command line, and the lessons here assume you do.</p>'
++ '<p><i>Individual tool URLs are catalogued in the lists above and not duplicated here.</i></p>'
+
++ '<h2>Benchmarks worth reading before choosing a method</h2>'
++ '<p>These are the papers behind the numbers the lessons quote.</p>'
++ '<div class="matrix-scroll"><table class="res"><thead><tr><th>Topic</th>'
++ '<th>Finding that should change what you do</th><th>Lesson</th></tr></thead><tbody>'
++ RES_BENCH.map(function(b){ return '<tr><td>' + esc(b[0]) + '</td><td>' + esc(b[1])
+    + '</td><td><a href="#/l' + String(b[2]).padStart(2,"0") + '">'
+    + String(b[2]).padStart(2,"0") + '</a></td></tr>'; }).join("")
++ '</tbody></table></div>'
+
++ '<div class="call"><span class="ct">A gap, marked as one</span><p>There is no general '
++ 'best-practices text listed here, and that is a real hole rather than an oversight. If you '
++ 'know of a maintained one, it belongs on this page.</p></div>'
+
++ '<h2>Contributing an entry</h2>'
++ '<p>Open an issue with the URL, one sentence on who it is for, and the date you opened it. '
++ 'Entries without a stated audience get sent back, because "useful resource" is not '
++ 'information anyone can act on. Dead links and resources that have fallen behind an API '
++ 'break are equally worth reporting — a resource page that rots is worse than none, because '
++ 'it looks maintained.</p>';
+}
+
+function slot(n, title, inner, cls){
+  return '<section class="slot ' + (cls||"") + '">'
+    + '<div class="slothead"><span class="n">' + n + '</span><h2>' + title + '</h2></div>'
+    + inner + '</section>';
+}
+
+function pageLesson(l){
+  const track = TRACKS.find(t => t.id === l.track);
+  const idx = LESSONS.indexOf(l);
+  const prev = LESSONS[idx-1], next = LESSONS[idx+1];
+
+  let h = '<div class="crumb">' + esc(track.name) + ' · Lesson ' + l.n + '</div>';
+  h += '<h1>' + esc(l.title) + '</h1>';
+
+  h += '<div class="metastrip">'
+     + '<span class="pill ' + (l.status === "written" ? "done" : "draft") + '">'
+     + (l.status === "written" ? "Written" : "Draft — structure only") + '</span>'
+     + '<span class="pill">Data tier <b>' + esc(l.tier) + '</b></span>'
+     + '<span class="pill">Runtime <b>' + esc(l.runtime) + '</b></span>'
+     + '<span class="pill">Peak memory <b>' + esc(l.memory) + '</b></span>'
+     + l.caps.map(c => '<span class="pill">' + esc(c) + '</span>').join("")
+     + '</div>';
+
+  h += slot(1, "The decision this serves",
+    '<div class="decision">' + esc(l.decision) + '</div>'
+    + '<div class="call scale"><span class="ct">Before you run it</span><p>Takes about '
+    + esc(l.runtime) + ', peak memory ' + esc(l.memory) + '. Watch <b>' + esc(l.unsafe)
+    + '</b> — that is what stops being safe on a full section.</p></div>');
+
+  const conceptBody = l.conceptHTML
+    ? l.conceptHTML + (l.fig ? '<figure>' + l.fig + '<figcaption>' + esc(l.figcap) + '</figcaption></figure>' : "")
+    : '<p>' + esc(l.concept) + '</p>'
+      + '<div class="call warn"><span class="ct">Not yet written</span><p>This lesson has its '
+      + 'structure, its failure mode and its scale notes, but the concept section is a '
+      + 'placeholder. Writing it from memory is exactly the failure this site exists to '
+      + 'prevent, so it stays marked until the sources are verified.</p></div>';
+
+  h += slot(2, "Concept", conceptBody
+    + '<p><b>The assumption that breaks first.</b> ' + esc(l.breaks) + '</p>');
+
+  let nb = '<p>' + esc(l.notebook) + '</p>'
+    + '<p>Data tier: <b>' + esc(l.tier) + '</b>.</p>';
+  if(l.codePython){
+    nb += '<div class="call warn"><span class="ct">Not yet executed</span><p>This code has '
+       + 'not been run in this build, so no output is shown and nothing is cached. Treat it '
+       + 'as a sketch of the analysis, not a verified result.</p></div>'
+       + '<pre><code>' + l.codePython + '</code></pre>'
+       + '<h3>What it asserts</h3><pre><code>' + l.codeAssert + '</code></pre>';
+  }else{
+    nb += '<p><b>Will assert:</b> ' + esc(l.asserts) + '</p>';
+  }
+  h += slot(3, "Runnable notebook", nb);
+
+  h += slot(4, "Rosetta panel",
+    l.codeR ? '<p>' + esc(l.rosetta) + '</p><pre><code>' + l.codeR + '</code></pre>'
+            : '<p>' + esc(l.rosetta) + '</p>');
+
+  h += slot(5, "Failure mode",
+    '<div class="call warn"><span class="ct">What it produces when it fails</span><p>'
+    + esc(l.failure) + '</p></div>'
+    + '<p><b>The diagnostic that catches it.</b> ' + esc(l.diagnostic) + '</p>', "fail");
+
+  const qs = l.checks.map((q,i) =>
+    '<details><summary>' + esc(q) + '</summary><div class="ans"><p>'
+    + (l.answers ? esc(l.answers[i]) : "Answer not yet written.") + '</p></div></details>').join("");
+  h += slot(6, "Self-check", qs);
+
+  h += slot(7, "Going further",
+    '<p>' + esc(l.further) + '</p>'
+    + '<h3>Sources</h3>'
+    + '<div class="call warn"><span class="ct">Citations not verified</span><p>'
+    + esc(l.sources || "Sources for this lesson have not been drafted.")
+    + ' Nothing here has been checked against the published record, so none of it should be '
+    + 'cited until it has.</p></div>');
+
+  h += '<nav class="pager">'
+    + (prev ? '<a href="#/' + slugOf(prev) + '">← ' + esc(prev.title) + '</a>' : '<span></span>')
+    + (next ? '<a href="#/' + slugOf(next) + '">' + esc(next.title) + ' →</a>' : '<span></span>')
+    + '</nav>';
+  return h;
+}
+
+/* ---------- router ---------- */
+function render(){
+  const r = (location.hash || "#/").slice(1) || "/";
+  let html;
+  if(r === "/") html = pageHome();
+  else if(r === "/paths") html = pagePaths();
+  else if(r === "/data") html = pageData();
+  else if(r === "/resources") html = pageResources();
+  else if(r === "/how") html = pageHow();
+  else {
+    const l = LESSONS.find(x => "/" + slugOf(x) === r);
+    html = l ? pageLesson(l) : pageHome();
+  }
+  document.getElementById("main").innerHTML = html;
+  document.querySelectorAll(".side a.nav").forEach(a =>
+    a.classList.toggle("on", a.dataset.r === r));
+  document.getElementById("side").classList.remove("open");
+  document.getElementById("menubtn").setAttribute("aria-expanded","false");
+  window.scrollTo(0,0);
+}
+
+buildNav();
+window.addEventListener("hashchange", render);
+document.getElementById("menubtn").addEventListener("click", e => {
+  const s = document.getElementById("side");
+  const open = s.classList.toggle("open");
+  e.currentTarget.setAttribute("aria-expanded", open ? "true" : "false");
+});
+render();
+</script>
+</body>
+</html>

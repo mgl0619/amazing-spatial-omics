@@ -1,0 +1,239 @@
+---
+title: "Designing the experiment before there is data"
+subtitle: "Lesson 1 — How the data was made"
+runtime: "5 min"
+peak-memory: "under 1 GB"
+data-tier: "Simulated"
+builds: "Name the regime"
+status: written
+citations-verified: partial
+---
+
+## The decision this serves
+
+Your PI has budget for four sections and asks how to spend them. Decide now, because
+nothing later on this site can rescue a confounded design.
+
+::: {.callout-important}
+**Scale.** Runs in about 5 min, peak memory under 1 GB. Watch **pooling sections as
+replicates** — that is what stops being valid the moment your sections come from one donor.
+:::
+
+## Concept
+
+Spatial experiments are expensive enough that people design them around what fits on a
+slide rather than around what they want to test. The result is a class of failure that no
+analysis can undo, and which becomes visible only when a reviewer asks what the replicates
+were.
+
+### What counts as a replicate
+
+The question sounds pedantic until it costs you a paper. **Pseudoreplication** is treating
+samples taken from one experimental unit as independent replicates
+[@omics_design_2025]. When units are genuinely independent, no two are expected to be more
+similar to each other than any other two — and two sections from the same block fail that
+test badly.
+
+Three candidate units, in ascending order of what they buy you:
+
+- **Sections from one block.** These are technical replicates. They tell you about
+  sectioning and processing variance. They tell you nothing about biological variability,
+  and treating *n* sections as *n* biological replicates inflates your effective sample size
+  by a factor of *n* while adding no information about the population.
+- **Blocks from one donor.** Capture regional and handling variation within an individual.
+  Still one draw from the population you want to generalise to.
+- **Donors.** The unit almost every biological claim is implicitly about.
+
+Thousands of spots per section makes this trap easier to fall into, not harder. Spot count
+feels like sample size, and the misconception that more data guarantees statistical
+validity is exactly what the design literature warns about — it is the number of biological
+replicates that determines what you can conclude [@omics_design_2025].
+
+### Confounding, which is the failure that cannot be fixed
+
+Assign one section to control and one to treated, and condition is perfectly aligned with
+section. Every difference you observe is real — and is jointly attributable to treatment,
+to that particular piece of tissue, to the day it was processed, to its reagent lot, and to
+its region of origin. No integration method separates them, because nothing in the data
+distinguishes them. This is why lesson 14 says section is batch and batch is confounded
+with biology.
+
+The test is arithmetic, not judgement: write the design matrix before the tissue is cut. If
+condition and section are collinear, the matrix is singular and the experiment cannot answer
+the question. That check costs ten minutes and is worth more than every downstream method on
+this site.
+
+Randomisation is the general protection — it is what stops an unmeasured variable lining up
+with your comparison [@omics_design_2025]. In practice that means interleaving conditions
+across processing batches, slides and days rather than processing all controls on Monday.
+
+### Power, which is not as unavailable as people assume
+
+I would have told you spatial power analysis was unsettled and best skipped. That is out of
+date. **PoweREST** estimates power for detecting differentially expressed genes in Visium
+experiments, works either before data collection or from preliminary data, and provides both
+an R package and a web application [@powerest_2025].
+
+Its approach is worth understanding because it explains why generic power calculators
+mislead here. Rather than assuming a Poisson or negative binomial model as bulk and
+single-cell tools do, it bootstraps spot-level expression within a region of interest to
+generate replicate datasets, then fits a power surface over effect size and detection rate
+[@powerest_2025]. The parameter it treats as sample size is the **number of tissue slices**
+per group — not the number of spots.
+
+There is also a design question upstream of power that most people never ask: which slices
+to cut. Parallel axis-aligned sections tend to yield redundant, correlated information, and
+structured batch design can collect more informative samples from fewer slices
+[@spatial_design_2024]. Sectioning is destructive, so the ordering of these decisions is not
+recoverable.
+
+**The assumption that breaks first.** That a correction step later can separate two
+variables you assigned together.
+
+## Runnable notebook
+
+Simulate three allocations of four sections across two conditions and show which questions
+each can answer.
+
+Data tier: **Simulated**
+
+::: {.callout-warning}
+**Not yet executed.** No output shown and nothing cached.
+:::
+
+```{python}
+#| label: design-matrices
+import numpy as np
+import pandas as pd
+
+designs = {
+    "confounded":  dict(section=[1, 2, 3, 4], condition=["ctl", "ctl", "trt", "trt"],
+                        donor=[1, 1, 2, 2]),           # donor == condition too
+    "paired":      dict(section=[1, 2, 3, 4], condition=["ctl", "trt", "ctl", "trt"],
+                        donor=[1, 1, 2, 2]),           # each donor gives both
+    "pseudorep":   dict(section=[1, 2, 3, 4], condition=["ctl", "ctl", "trt", "trt"],
+                        donor=[1, 1, 1, 1]),           # one donor, four sections
+}
+
+for name, d in designs.items():
+    X = pd.get_dummies(pd.DataFrame(d).astype(str), drop_first=True).astype(float)
+    rank = np.linalg.matrix_rank(X.values)
+    print(f"{name:<12} columns={X.shape[1]}  rank={rank}  "
+          f"{'SINGULAR — cannot separate effects' if rank < X.shape[1] else 'estimable'}")
+```
+
+```{python}
+#| label: assert-design
+# The confounded design must fail. If it does not, the check is not checking.
+
+assert rank["confounded"] < n_cols["confounded"], (
+    "a design with condition perfectly aligned to donor should be rank deficient; "
+    "if this passes, the encoding is wrong and the check is vacuous"
+)
+assert rank["paired"] == n_cols["paired"], "the paired design should be estimable"
+
+# Pseudoreplication is NOT caught by rank. It is a variance problem, not a
+# collinearity problem, and this assert documents that limitation explicitly.
+assert rank["pseudorep"] == n_cols["pseudorep"], (
+    "rank deficiency does not detect pseudoreplication — four sections from one "
+    "donor give an estimable but meaningless model"
+)
+```
+
+That last assert is the point of the notebook. The design matrix catches confounding and is
+completely blind to pseudoreplication. Rank is necessary, not sufficient.
+
+## Rosetta panel
+
+Design is language-independent, and that is the useful observation: the same model matrix in
+R is equally singular. Nothing about the choice of analysis ecosystem rescues an
+experimental allocation.
+
+```r
+d <- data.frame(
+  section   = factor(1:4),
+  condition = factor(c("ctl", "ctl", "trt", "trt")),
+  donor     = factor(c(1, 1, 2, 2))
+)
+
+X <- model.matrix(~ condition + donor, data = d)
+qr(X)$rank        # < ncol(X): condition and donor are aliased
+alias(lm(rnorm(4) ~ condition + donor, data = d))
+```
+
+## Failure mode
+
+**What it produces.** One section per condition, so treatment and section are the same
+variable. Every downstream difference is real and uninterpretable, and no integration method
+can separate them. The analysis will run perfectly and produce a confident gene list.
+
+**The diagnostic that catches it.** Build the design matrix before the tissue is cut and
+check its rank. If it is deficient, the experiment cannot answer the question as posed, and
+you learn that while the block is still intact rather than after the sequencing invoice.
+
+## Self-check
+
+### Question 1
+
+What is a replicate in your design — a section, a block, or a donor?
+
+::: {.callout-note collapse="true"}
+## Answer
+
+Whichever unit your claim generalises over, and it is almost never the section. Sections
+from one block are technical replicates: they quantify sectioning and processing variance,
+not biological variability [@omics_design_2025].
+
+If your conclusion is "this happens in disease X," the replicate is the donor, and four
+sections from one donor is *n* = 1 regardless of how many spots each contains.
+:::
+
+### Question 2
+
+If you dropped your batch correction entirely, what would remain of your effect?
+
+::: {.callout-note collapse="true"}
+## Answer
+
+In a confounded design, everything and nothing — the effect remains, and so does every
+alternative explanation for it. Batch correction in that setting does not remove batch, it
+removes whichever variance component the algorithm attributes to batch, which includes your
+treatment effect because they are the same variable.
+
+If your result depends on the correction, and condition is aliased with section, you have no
+result. Lesson 14 covers the measurement side of this.
+:::
+
+### Question 3
+
+Which comparison does your allocation make impossible?
+
+::: {.callout-note collapse="true"}
+## Answer
+
+Every allocation forecloses something, and the honest move is to name it in advance. Four
+sections from two donors, one condition each, forecloses within-donor comparison. Four
+sections from one donor forecloses generalisation to the population.
+
+Write the foreclosed comparison in your protocol. It becomes the limitations paragraph you
+would otherwise be writing under pressure, months later.
+:::
+
+## Going further
+
+What the bench steps do to your data once the design is fixed is lesson 2. The measurement
+consequences of section-as-batch are lesson 14.
+
+Formerly omitted, now not: power calculation. PoweREST provides both an R package and a web
+application for Visium designs [@powerest_2025], and structured batch design addresses which
+slices to cut [@spatial_design_2024]. Neither is a solved problem, but "no tools exist" is
+no longer true.
+
+### Sources
+
+::: {.callout-note}
+**Citation status: partial.** Sources located and DOIs read from publisher records on
+2026-09-01; author lists and page numbers still incomplete in `references.bib`. The
+pseudoreplication and randomisation material is general experimental design applied to
+spatial data, not spatial-specific findings, and is framed that way in the text.
+:::

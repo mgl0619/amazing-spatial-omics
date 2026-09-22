@@ -1,0 +1,101 @@
+---
+title: "The noise floor you were given for free"
+subtitle: "Lesson 9 — From image to cells"
+runtime: "10 min"
+peak-memory: "8 GB"
+data-tier: "Fetched public"
+builds: "Spot a silent failure"
+status: draft
+citations-verified: false
+---
+
+## The decision this serves
+
+Your QC threshold came from a tutorial written for brain and you are working on tumour. Decide what threshold your own data can justify.
+
+::: {.callout-important}
+**Scale.** Runs in 10 min, peak memory 8 GB.
+Watch **fixed count thresholds, across tissue types** — that is what stops being safe on a full section.
+:::
+
+## Concept
+
+Negative and blank codewords as a measured noise floor, and QC thresholds that follow from it rather than from convention.
+
+**The assumption that breaks first.** That a count threshold transfers between tissues with different cell sizes and densities.
+
+## Runnable notebook
+
+Build a QC report from negative-probe counts on a public imaging run
+
+Data tier: **Fetched public**
+
+```{python}
+#| label: setup
+# TODO
+```
+
+```{python}
+#| label: assert-truth
+# Blank probes are present in the loaded object; the derived floor is non-zero and tissue-specific
+# Sabotage the code this guards and confirm the assert FAILS before you commit.
+```
+
+## Rosetta panel
+
+The same QC in R, noting that sequencing-based platforms have no blank-probe equivalent at all
+
+```r
+# TODO
+```
+
+## Failure mode
+
+**What it produces.** Blank probes are dropped at load, and thresholds are then copied from a tutorial written for a different tissue.
+
+**The diagnostic that catches it.** Plot real counts against blank counts per cell; the cells you kept include a population that is mostly background.
+
+## Self-check
+
+### Question 1
+
+What is your blank rate per cell?
+
+::: {.callout-note collapse="true"}
+## Answer
+
+TODO
+:::
+
+### Question 2
+
+Which cells fail on background but pass on total counts?
+
+::: {.callout-note collapse="true"}
+## Answer
+
+TODO
+:::
+
+### Question 3
+
+Where did your threshold actually come from?
+
+::: {.callout-note collapse="true"}
+## Answer
+
+TODO
+:::
+
+## Going further
+
+Sequencing-based platforms have no equivalent control; say so explicitly.
+
+### Sources
+
+::: {.callout-warning}
+**Citations not yet verified.** Verify against PubMed — title, journal, year, volume,
+pages, DOI — then set `citations-verified: true`.
+:::
+
+TODO

@@ -1,0 +1,302 @@
+% references.bib
+%
+% Every entry below was located by search on 2026-09-01 and its DOI read from the
+% publisher URL. Author lists, volume and page numbers are NOT yet filled in for
+% every entry — where a field is absent it is because it was not verified, not
+% because it is unimportant. Fill them from the publisher record before citing in
+% anything that leaves this repository.
+%
+% Link, never host. Redraw figures from the equations or the underlying data.
+
+% ---------------------------------------------------------------- platforms
+
+@article{visium_spatialone_2024,
+  title   = {SpatialOne: end-to-end analysis of Visium data at scale},
+  journal = {Bioinformatics},
+  volume  = {40},
+  number  = {9},
+  pages   = {btae509},
+  year    = {2024},
+  doi     = {10.1093/bioinformatics/btae509},
+  note    = {Cited for Visium array geometry: 4,992 spots per 6.5 x 6.5 mm capture
+             area, 55 um diameter, 100 um centre-to-centre. Read: abstract and
+             introduction only.}
+}
+
+@techreport{tenx_visium_hd_technote,
+  title       = {Visium HD Spatial Applications Performance},
+  institution = {10x Genomics},
+  number      = {CG000686, Rev B},
+  note        = {Primary source for the contrast between Visium v1/v2 spot arrays
+                 and the Visium HD continuous lawn of 2 x 2 um barcoded squares
+                 binned to 8 x 8 um. Vendor document: re-check on each chemistry
+                 release, as these numbers move.}
+}
+
+@article{spot_deconvolution_cells_per_spot,
+  title   = {Single-cell level deconvolution, convolution, and clustering in
+             spatial transcriptomics},
+  journal = {Nature Communications},
+  year    = {2023},
+  note    = {PMC10769305. Cited for simulated median cells per 55 um spot by
+             tissue: mouse kidney 19, mouse brain cortex 6, hippocampus 5, human
+             breast cancer 6; and for the unsampled-area calculation. Read:
+             abstract and results.}
+}
+
+@article{xenium_quality_2025,
+  title   = {Optimizing Xenium In Situ data utility by quality assessment and
+             best-practice analysis workflows},
+  journal = {Nature Methods},
+  year    = {2025},
+  doi     = {10.1038/s41592-025-02617-2},
+  note    = {Cited for Xenium detection efficiency 1.2-1.5x that of Chromium v2
+             scRNA-seq depending on metric and region, and for the observation
+             that commercial platforms converge on similar detection efficiency.}
+}
+
+@article{ist_benchmark_2025,
+  title   = {Systematic benchmarking of imaging spatial transcriptomics platforms},
+  journal = {Nature Communications},
+  year    = {2025},
+  doi     = {10.1038/s41467-025-64990-y},
+  note    = {Xenium, MERSCOPE and CosMx across a tumour tissue microarray. Cited
+             for platform-dependent FDR (Xenium lowest in 15 of 22 TMA-cancer
+             combinations) and for concordance with bulk RNA-seq. Note the
+             chemistry-version dependence: 2023 and 2024 runs differ substantially.}
+}
+
+% ---------------------------------------------------------------- segmentation
+
+@article{baysor_2022,
+  title   = {Cell segmentation in imaging-based spatial transcriptomics},
+  journal = {Nature Biotechnology},
+  year    = {2022},
+  doi     = {10.1038/s41587-021-01044-w},
+  note    = {Baysor. Cited for transcript-composition-based segmentation and the
+             claim that it can nearly double recovered cell counts while reducing
+             contamination. Read alongside proseg_2025, which reports the same
+             behaviour as systematic over-segmentation.}
+}
+
+@article{proseg_2025,
+  title   = {Cell simulation as cell segmentation},
+  year    = {2025},
+  note    = {Proseg. PMID 40404994. Cited for the spurious-co-expression metric:
+             gene pairs whose co-expression rises sharply as nuclear boundaries
+             are expanded. Also reports Baysor predicting substantially more cells
+             than alternatives, read as systematic over-segmentation.}
+}
+
+@article{comseg_2024,
+  title   = {A point cloud segmentation framework for image-based spatial
+             transcriptomics},
+  journal = {Communications Biology},
+  year    = {2024},
+  doi     = {10.1038/s42003-024-06480-3},
+  note    = {ComSeg. Cited for cell-type calling accuracy against simulated ground
+             truth: ComSeg 74 percent, Watershed 60, pciSeq 62, SCS 35, Baysor 62.
+             This is the strongest available quantification of how much the
+             segmentation choice moves the downstream answer.}
+}
+
+@article{crisp_2026_preprint,
+  title   = {CRISP enables comparisons of image-based spatial transcriptomic
+             segmentation methods},
+  year    = {2026},
+  note    = {PREPRINT, bioRxiv, not peer reviewed at time of citation. Measures
+             segmentation purity via co-expression of mutually exclusive markers,
+             without ground truth. Cited for the capture-versus-purity tradeoff
+             and its tissue dependence. Re-check for a published version.}
+}
+
+% ---------------------------------------------------------------- inference
+
+@article{svg_benchmark_2025,
+  title   = {Systematic benchmarking of computational methods to identify
+             spatially variable genes},
+  journal = {Genome Biology},
+  year    = {2025},
+  doi     = {10.1186/s13059-025-03731-2},
+  note    = {Cited for the central finding that most SVG methods produce poorly
+             calibrated p-values, and for the resulting recommendation to select
+             SVGs by a fixed rank threshold rather than by significance.}
+}
+
+@article{nnsvg_2023,
+  title   = {nnSVG for the scalable identification of spatially variable genes
+             using nearest-neighbor Gaussian processes},
+  journal = {Nature Communications},
+  year    = {2023},
+  doi     = {10.1038/s41467-023-39748-z},
+  note    = {Cited as a counterexample to general miscalibration: reports false
+             positive proportions of 1.5 and 1.0 percent at a nominal 0.05 cutoff
+             in two null simulations, i.e. conservative rather than
+             anticonservative.}
+}
+
+@article{gcea_false_positives_2021,
+  title   = {Overcoming false-positive gene-category enrichment in the analysis of
+             spatially resolved transcriptomic brain atlas data},
+  journal = {Nature Communications},
+  year    = {2021},
+  doi     = {10.1038/s41467-021-22862-1},
+  note    = {Cited for over 500-fold average inflation of false-positive GO
+             category associations with random spatially autocorrelated
+             phenotypes, and for ensemble-based null models that randomise the
+             phenotype rather than the genes. Brain atlas data, so generalisation
+             to tissue sections is an inference, not a finding.}
+}
+
+@article{st_de_typeI_2025_preprint,
+  title   = {A comparative study of statistical methods for identifying
+             differentially expressed genes in spatial transcriptomics},
+  year    = {2025},
+  note    = {PREPRINT, bioRxiv, not peer reviewed at time of citation. Cited for
+             inflated Type I error of the Wilcoxon rank-sum test under strong
+             spatial correlation.}
+}
+
+% ------------------------------------------------- batch 2: data generation
+
+@article{omics_design_2025,
+  title   = {How thoughtful experimental design can empower biologists in the
+             omics era},
+  journal = {Nature Communications},
+  year    = {2025},
+  doi     = {10.1038/s41467-025-62616-x},
+  note    = {Cited for the definition of pseudoreplication, the independence
+             requirement for replicates, the misconception that data quantity
+             substitutes for biological replication, and randomisation as
+             protection against confounding. General experimental design, applied
+             here to spatial data rather than derived from it.}
+}
+
+@article{powerest_2025,
+  title   = {PoweREST: Statistical power estimation for spatial transcriptomics
+             experiments to detect differentially expressed genes between two
+             conditions},
+  journal = {PLOS Computational Biology},
+  year    = {2025},
+  doi     = {10.1371/journal.pcbi.1013293},
+  note    = {Cited for the existence of spatial power analysis, its bootstrap
+             rather than parametric framework, and its treatment of the number of
+             tissue slices (not spots) as sample size. R package on CRAN; Shiny
+             application available.}
+}
+
+@article{spatial_design_2024,
+  title   = {Optimizing the design of spatial genomic studies},
+  year    = {2024},
+  note    = {PMC11166654. Cited for structured batch experimental design and the
+             observation that parallel axis-aligned sections yield redundant or
+             correlated information. Relevant because sectioning is destructive
+             and the decision is not recoverable.}
+}
+
+@article{ffpe_ff_cardiac_2023,
+  title   = {Comparison of whole transcriptome sequencing of fresh, frozen, and
+             formalin-fixed, paraffin-embedded cardiac tissue},
+  journal = {PLOS ONE},
+  year    = {2023},
+  doi     = {10.1371/journal.pone.0283159},
+  note    = {Cited for FFPE median RIN 2.5 and DV200 48 percent against RIN 8.1
+             and DV200 96-97 percent for fresh and frozen; for falsely elevated
+             mitochondrial transcripts in FFPE; and for the explicit
+             recommendation not to compare expression across storage conditions.
+             One tissue type: magnitudes are not universal.}
+}
+
+@misc{vai_spatial_specs,
+  title        = {Spatial Collaborative Services: platform specifications},
+  howpublished = {Van Andel Institute core facility documentation},
+  note         = {Cited for platform sample requirements: Visium fresh frozen
+                  RIN above 7.0 and FFPE DV200 above 50 percent; Xenium optimal
+                  section thickness 5 um FFPE and 10 um fresh frozen. A core
+                  facility's restatement of vendor specifications, not a primary
+                  vendor document. Re-verify against current 10x documentation
+                  before relying on any threshold.}
+}
+
+@article{ffpe_st_benchmark_2023,
+  title   = {Benchmarking robust spatial transcriptomics approaches to capture
+             the molecular landscape of archival FFPE tissue},
+  year    = {2023},
+  note    = {PREPRINT, bioRxiv, not confirmed peer reviewed at time of citation.
+             Cited for FFPE block age driving RNA quality: blocks from 2018
+             averaging DV200 around 70 percent against 31 percent for 2008
+             blocks, and for lower initial RNA quality yielding decreased unique
+             gene counts. Skin tissue.}
+}
+
+% ------------------------------------------------- batch 3: panel and codebook
+
+@article{merfish_subcellular_2019,
+  title   = {Spatial transcriptome profiling by MERFISH reveals subcellular RNA
+             compartmentalization and cell cycle-dependent gene expression},
+  journal = {Proceedings of the National Academy of Sciences},
+  year    = {2019},
+  doi     = {10.1073/pnas.1912459116},
+  note    = {Cited for the Hamming distance rule: HD >= 2 permits error detection,
+             HD >= 3 additionally permits correction; and for a 69-bit HD4 HW4
+             code imaging approximately 10,000 genes over 23 rounds of three-colour
+             imaging.}
+}
+
+@article{merfish_plus_2025,
+  title   = {MERFISH+, a large-scale multi-omics spatial technology},
+  year    = {2025},
+  note    = {PMC12637541. Cited for a 48-bit HW4 codebook carrying an 1,835-gene
+             panel with roughly 75 adaptor probes pooled per round; for retaining
+             clusters of at least three spots to allow single-bit error
+             correction; and for the gene-to-blank ratio filter applied until a
+             5 percent misidentification rate was reached.}
+}
+
+@article{merfish_codebook_2025,
+  title   = {Boosting multiplexing capabilities for error-robust spatial
+             transcriptomics},
+  journal = {Science Advances},
+  year    = {2025},
+  doi     = {10.1126/sciadv.adr4026},
+  note    = {PMID 40315316. Cited for fixed Hamming weight as the mechanism that
+             equalises detection sensitivity across genes; for weight four being
+             chosen high enough to encode many genes without inflating molecular
+             density; and for optimal codebook generation being an unsolved
+             mathematical problem for most experimental parameters.}
+}
+
+@article{mouse_brain_atlas_2023,
+  title   = {Molecularly defined and spatially resolved cell atlas of the whole
+             mouse brain},
+  journal = {Nature},
+  year    = {2023},
+  doi     = {10.1038/s41586-023-06808-9},
+  note    = {Cited for a codebook including 116 blank barcodes assigned to no gene
+             in order to measure the false-positive rate, and for a later
+             1,147-gene panel assigning its 25 additional genes barcodes drawn
+             from that blank set.}
+}
+
+@article{bioimaging_review_2023,
+  title   = {Introduction to bioimaging-based spatial multi-omic novel methods},
+  journal = {Quantitative Biology},
+  year    = {2023},
+  doi     = {10.15302/J-QB-023-0332},
+  note    = {Cited for reported MERFISH error rates of approximately 10 percent
+             false negative and 4 percent false positive, and for probe-design
+             advice to avoid housekeeping genes, histones and very highly
+             expressed genes. Review article: treat the error rates as indicative
+             of a study, not as platform specifications.}
+}
+
+@misc{pachter_current_techs,
+  title        = {Current era technologies},
+  howpublished = {Museum of Spatial Transcriptomics, Pachter lab},
+  note         = {Cited for optical crowding mitigations: imaging the most highly
+                  expressed genes separately by single-molecule FISH rather than
+                  including them in the combinatorial scheme, as in the first
+                  MERFISH study, and the fact that this becomes laborious as their
+                  number grows. Community resource, continuously updated: cite the
+                  version consulted.}
+}

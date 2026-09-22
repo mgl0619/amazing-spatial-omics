@@ -1,0 +1,59 @@
+project:
+  type: book
+  output-dir: _site
+
+book:
+  title: "Spatial Omics, Worked Through"
+  subtitle: "Tutorials for people who have the data and are about to trust it"
+  site-url: https://mgl0619.github.io/amazing-spatial-omics/
+  repo-url: https://github.com/mgl0619/amazing-spatial-omics
+  repo-branch: main
+  search: true
+  repo-actions: [edit, issue]
+  sidebar:
+    style: docked
+  chapters:
+      - index.qmd
+      - paths.qmd
+      - resources.qmd
+      - part: "How the data was made"
+        chapters:
+          - lessons/L01-designing-the-experiment-before-there-is-data.qmd
+          - lessons/L02-from-block-to-matrix.qmd
+          - lessons/L03-panel-design-and-the-codebook.qmd
+      - part: "Before you trust anything"
+        chapters:
+          - lessons/L04-what-spatial-data-is-and-what-it-is-not.qmd
+          - lessons/L05-platforms-and-resolution-regimes.qmd
+          - lessons/L06-coordinate-systems-and-the-flipped-axis.qmd
+      - part: "From image to cells"
+        chapters:
+          - lessons/L07-segmentation-is-upstream-of-everything.qmd
+          - lessons/L08-deconvolution-returns-proportions-not-cells.qmd
+          - lessons/L09-the-noise-floor-you-were-given-for-free.qmd
+          - lessons/L10-cell-typing-inherits-the-reference-s-blind-spots.qmd
+      - part: "Asking spatial questions"
+        chapters:
+          - lessons/L11-neighbourhood-graphs-and-niches.qmd
+          - lessons/L12-your-neighbours-are-not-independent-samples.qmd
+          - lessons/L13-ligand-and-receptor-is-co-expression-until-prove.qmd
+          - lessons/L14-section-is-batch-and-batch-is-confounded-with-bi.qmd
+      - part: "Working at real scale"
+        chapters:
+          - lessons/L15-when-the-data-does-not-fit-in-memory.qmd
+          - lessons/L16-plotting-spatial-data-honestly.qmd
+          - lessons/L17-an-analysis-someone-else-can-run.qmd
+      - appendix/data-strategy.qmd
+      - appendix/environment.qmd
+
+execute:
+  freeze: auto        # cache is committed; CI publishes from it and never re-executes
+
+format:
+  html:
+    theme: cosmo
+    toc: true
+    code-link: true
+    code-copy: true
+
+bibliography: references.bib

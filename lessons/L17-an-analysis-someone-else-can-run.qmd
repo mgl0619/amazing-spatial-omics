@@ -1,0 +1,101 @@
+---
+title: "An analysis someone else can run"
+subtitle: "Lesson 17 — Working at real scale"
+runtime: "15 min"
+peak-memory: "under 2 GB"
+data-tier: "Committed toy"
+builds: "Run it again"
+status: draft
+citations-verified: false
+---
+
+## The decision this serves
+
+A reader emails to say your notebook does not run. Decide what you should have pinned six months ago.
+
+::: {.callout-important}
+**Scale.** Runs in 15 min, peak memory under 2 GB.
+Watch **unpinned package versions, which rot within months** — that is what stops being safe on a full section.
+:::
+
+## Concept
+
+Pinned environments, cached executed output, and stating runtime and peak memory as part of the result rather than as an afterthought.
+
+**The assumption that breaks first.** That a lock file on your machine is the same thing as a stated version on the page.
+
+## Runnable notebook
+
+Take a finished analysis and make it rerunnable from a clean machine
+
+Data tier: **Committed toy**
+
+```{python}
+#| label: setup
+# TODO
+```
+
+```{python}
+#| label: assert-truth
+# A clean-checkout build reproduces the committed output; deliberately unpin one package and confirm the check fails
+# Sabotage the code this guards and confirm the assert FAILS before you commit.
+```
+
+## Rosetta panel
+
+The R environment equivalent, with the same clean-checkout test applied to it
+
+```r
+# TODO
+```
+
+## Failure mode
+
+**What it produces.** Frozen notebook output exists only on the author's machine. The site looks fine locally and breaks on every other build.
+
+**The diagnostic that catches it.** Build from a clean checkout in CI; the missing cache surfaces immediately instead of months later.
+
+## Self-check
+
+### Question 1
+
+Are versions stated on the page, not only in a lock file?
+
+::: {.callout-note collapse="true"}
+## Answer
+
+TODO
+:::
+
+### Question 2
+
+Is executed output committed?
+
+::: {.callout-note collapse="true"}
+## Answer
+
+TODO
+:::
+
+### Question 3
+
+Does a clean checkout build?
+
+::: {.callout-note collapse="true"}
+## Answer
+
+TODO
+:::
+
+## Going further
+
+CI publishes from cache and never re-runs the heavy analysis; a separate manual workflow proves the cache is honest.
+
+### Sources
+
+::: {.callout-warning}
+**Citations not yet verified.** Verify against PubMed — title, journal, year, volume,
+pages, DOI — then set `citations-verified: true`.
+:::
+
+TODO
