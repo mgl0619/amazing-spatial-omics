@@ -1,0 +1,150 @@
+---
+title: "1. Introduction"
+subtitle: "What spatially resolved measurement provides, and why its errors are quiet"
+status: written
+citations-verified: true
+---
+
+## 1.1 Scope
+
+Spatially resolved omics comprises a family of assays that report molecular abundance
+together with position in intact tissue. The family is heterogeneous in chemistry, in
+the physical unit over which abundance is integrated, and in the number of analytes
+measured, and these differences determine which biological claims a given dataset can
+support. This work is concerned with that determination: what a spatial dataset licenses,
+what it does not, and how the distinction is lost in practice.
+
+The treatment is restricted to analysis. Assay selection, wet-laboratory protocol and
+instrument operation are outside its scope, and are covered by vendor documentation and
+by the primary methods literature surveyed in Chapter 3. The audience assumed here is an
+analyst who did not perform the experiment, working from a delivered dataset, and who
+must decide what can be concluded from it.
+
+## 1.2 The interpretive problem
+
+Analysis of dissociated single-cell data proceeds from a count matrix, and the matrix is
+the dataset: every downstream result is a function of it alone. Spatially resolved data
+does not have this property. A spatial dataset comprises a feature matrix, a set of
+coordinates, and — for most platforms — one or more images, together with the
+transformations that relate them. The components can disagree while each remains
+internally consistent, and no operation in a standard analysis pipeline validates their
+agreement.
+
+This structural difference has a consequence that organises the remainder of this work.
+The characteristic failures of spatial analysis do not raise exceptions. A coordinate
+system applied in pixels rather than microns yields a neighbourhood analysis. An
+inverted vertical axis yields a tissue map. Over-generous segmentation yields cells with
+coherent, intermediate expression profiles that cluster together and admit a biological
+interpretation. Differential expression computed across spatially autocorrelated
+observations yields small *p*-values. In each case the pipeline completes, the figures
+render, and the result is wrong.
+
+Several of these failures produce output that is more satisfying than the correct result
+— tighter clusters, stronger apparent co-localisation, more genes passing a significance
+threshold — which aligns the artefact with the expected finding and removes the prompt
+that would otherwise trigger scrutiny.
+
+## 1.3 Three properties that determine interpretation
+
+Three properties of a dataset, stated explicitly, resolve most questions about what it
+supports. They are frequently conflated under the single term *resolution*.
+
+**The unit of observation.** A row of the feature matrix corresponds to a capture spot,
+a binned region of a capture grid, a segmented cell, or an individual detected molecule,
+depending on platform and on analysis choices. The unit is substituted silently into
+every subsequent statement: a claim of the form "cells expressing gene *X* localise to
+region *Y*" presupposes that rows are cells. Where rows are capture areas, the claim is
+not an approximation of a true statement but a different statement that the data does not
+address. Chapter 4 treats this in detail.
+
+**The spatial support.** The physical extent over which each measurement integrates,
+expressed in microns. For the 10x Visium platform this is a 55 µm circle on a 100 µm
+centre-to-centre grid; for Visium HD it is a continuous grid of 2 × 2 µm squares
+subsequently binned to an analyst-chosen size. For imaging-based platforms, individual
+transcripts are localised to sub-micron precision, and the support of a *cell-level*
+measurement is then determined by a segmentation algorithm rather than by the instrument.
+
+**The scale of the process under study.** Contact-dependent signalling operates at
+membrane apposition. Paracrine signalling operates over tens of microns, mechanism
+dependent. Tissue architecture and gradients operate over hundreds of microns to
+millimetres. This scale is a property of the biology and must be supplied by the analyst;
+no instrument reports it.
+
+A dataset addresses questions whose biological scale is coarser than its spatial support.
+Where the biological scale is finer, the analysis returns numbers describing the capture
+geometry rather than the process of interest. This is analogous to sampling below the
+Nyquist rate: the result is not a degraded estimate of the truth but a confident artefact.
+
+## 1.4 Relation to existing work
+
+Two resources cover substantial parts of this material and are better suited to some
+readers than the present work.
+
+*Orchestrating Spatial Transcriptomics Analysis with Bioconductor* is an executable,
+actively maintained treatment in R covering sequencing- and imaging-based platforms,
+platform-independent analysis, and multi-sample design. It addresses several failure
+modes directly, including the effect of library-size thresholds on downstream domain
+detection, the consequences of transcript bleeding for differential expression, and the
+sensitivity of tissue contrast to normalisation choice. Readers working in R should treat
+it as the primary text.
+
+*Voyager* provides exploratory spatial data analysis built on geospatial statistics, and
+is notable for stating the assumptions its methods violate: that normalisation for
+capture-based data is unresolved, that permutation-test assumptions may not hold, that
+expression data violates the normality assumptions underlying analytic Moran's *I*
+*p*-values, and that its reported *p*-values are uncorrected for multiple testing.
+
+The present work does not displace either. Its contribution is narrower and is stated
+here so that it can be assessed:
+
+1. **Statistical calibration is not covered by existing teaching material.** The largest
+   published benchmark of spatially variable gene detection reports that only two of
+   fourteen methods produce well-calibrated *p*-values, with the remainder inflated, and
+   that a classical statistic (Moran's *I*) is competitive with purpose-built methods.
+   Double dipping — testing for differential expression between groups defined by the
+   same data — is documented as affecting spatial transcriptomics specifically. Neither
+   topic is treated in the feature-selection or testing chapters of existing resources.
+
+2. **Failures are demonstrated rather than described.** Where a failure can be produced
+   from data whose ground truth is known, it is produced, and the discrepancy between the
+   estimate and the truth is quantified. Existing treatments state caveats; the approach
+   here is to generate the incorrect result alongside the correct one.
+
+3. **Ground-truth simulation is used as an instrument of analysis rather than of method
+   development.** Simulators for spatial transcriptomics exist and are designed for
+   benchmarking new methods. The simulation framework described in Appendix A is used
+   instead to quantify how far a standard analysis lands from a known answer.
+
+## 1.5 Organisation
+
+Chapters 2 and 3 describe how spatial data is physically produced and how the field
+arrived at current practice. Chapters 4 to 8 treat the passage from raw measurement to a
+feature matrix: resolution regimes, coordinate systems, segmentation, deconvolution and
+detection limits. Chapters 9 to 12 treat inference: cell-type assignment, neighbourhood
+definition, the calibration of spatial tests, and experimental design. Chapter 13 covers
+computation at scale, visualisation and reproducibility. Chapter 14 surveys the analysis
+software landscape and the questions the field has not settled.
+
+Appendix A documents the simulation framework, including the ground truth returned by
+each generator and the verification applied to it. Appendix B records the computational
+environment. Appendix C is a filtered list of external resources.
+
+## 1.6 Conventions
+
+Lengths are given in microns. Vendor specifications are attributed as such and are
+distinguished from independent measurements; where the two conflict, both are reported.
+Citations are verified against the publisher record, carry a DOI, and are labelled where
+the venue is a preprint. Figures are generated by committed code and their palettes are
+validated for colour-vision deficiency computationally rather than by inspection.
+
+Claims about the prevalence or magnitude of a failure are quantified on simulated data
+with known ground truth, and the simulation is documented in Appendix A so that the
+quantity can be checked.
+
+## References
+
+To be completed: this chapter's citations are pending verification against the publisher
+record and are not yet written into `references.bib`. The claims above that require
+support are the OSTA and Voyager characterisations (§1.4), the spatially-variable-gene
+calibration benchmark and the double-dipping result (§1.4), and the Visium and Visium HD
+geometry (§1.3).

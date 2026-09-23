@@ -9,3 +9,6 @@ __pycache__/
 #   _freeze/    the executed cache must be committed
 #   uv.lock     exact Python versions and hashes, cross-platform
 #   renv.lock   the same guarantee for the R side
+
+/.quarto/
+**/*.quarto_ipynb
